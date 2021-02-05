@@ -13,6 +13,7 @@
 	<body>
 		<div id="map"></div>
 		<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+		<script src="https://unpkg.com/leaflet-highlightable-layers"></script>
 		<script src="node_modules/leaflet-geometryutil/src/leaflet.geometryutil.js"></script>
 		<script type="text/javascript" src="dist/L.DraggableLines.js"></script>
 
@@ -26,16 +27,20 @@
 				noWrap: true
 			}).addTo(map);
 
-			const layer1 = new L.Polyline([[53.09897, 12.02728], [52.01701, 14.18884]], { color: '#0000ff', weight: 10 }).addTo(map);
+			new L.HighlightableLayers.Polyline([
+				[[53.09897, 12.02728], [52.01701, 14.18884]],
+				[[52.93871, 11.92566], [52.73629, 12.57935]]
+		 	], { color: '#0000ff', weight: 10 }).addTo(map);
 
 			const draggable = new L.DraggableLines(map);
 			draggable.enable();
-			draggable.on('dragstart', (e) => { console.log('dragstart', e); });
-			//draggable.on('drag', (e) => { console.log('drag', e); });
-			draggable.on('dragend', (e) => { console.log('dragend', e); });
 
 			setTimeout(() => {
 				new L.Polyline([[51.96119, 11.79382], [53.16653, 14.04877]], { color: '#ff0000', weight: 50 }).addTo(map);
+				new L.HighlightableLayers.Polygon([
+					[[52.32359, 13.92242], [52.11157, 13.28522], [51.87649, 13.98834]],
+					[[52.13012, 13.73085], [52.09005, 13.73257], [52.11831, 13.77617]]
+				], { weight: 10 }).addTo(map);
 			}, 100);
 		</script>
 	</body>

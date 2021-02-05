@@ -1,19 +1,28 @@
-import L, { Draggable, Evented, Handler, Icon, LatLng, Layer, LeafletMouseEvent, Map, Marker, Polyline, Util } from 'leaflet';
+import L, { Draggable, Evented, Handler, Icon, LatLng, Layer, LeafletMouseEvent, Map, Marker, Polygon, Polyline, Util } from 'leaflet';
 import GeometryUtil from 'leaflet-geometryutil';
+import { getInsertPosition, getRouteInsertPosition, insertAtPosition, updateAtPosition } from './utils';
 
 interface DraggableLinesOptions {
     enableForLayer?: (layer: Layer) => boolean;
     icon?: Icon;
+    allowExtendingLine?: boolean;
+    autoApply?: boolean;
 }
 
 class DraggableLines extends Handler {
+
+    static getInsertPosition = getInsertPosition;
+    static getRouteInsertPosition = getRouteInsertPosition;
+    static insertAtPosition = insertAtPosition;
+    static updateAtPosition = updateAtPosition;
 
     options: DraggableLinesOptions;
     
     _active?: {
         layer: Polyline;
         marker: Marker;
-        dragStart?: LatLng;
+        dragFrom?: LatLng;
+        dragIdx?: number | [number, number];
     };
 
     constructor(map: Map, options?: DraggableLinesOptions) {
@@ -22,6 +31,8 @@ class DraggableLines extends Handler {
         this.options = {
             enableForLayer: (layer) => (layer instanceof Polyline),
             icon: new Icon.Default() as Icon,
+            allowExtendingLine: true,
+            autoApply: true,
             ...options
         };
     }
@@ -63,12 +74,23 @@ class DraggableLines extends Handler {
         if (!this._active || Draggable._dragging)
             return;
 
+        if (!this._active.layer._containsPoint(this._map.mouseEventToLayerPoint(e.originalEvent))) {
+            this.unsetActive();
+            return;
+        }
+
         const latlng = this._map.mouseEventToLatLng(e.originalEvent);
         const closest = GeometryUtil.closest(this._map, this._active.layer, latlng)!;
-        if (GeometryUtil.distance(this._map, latlng, closest) > this._active.layer.options.weight! / 2 + 1)
-            this.unsetActive();
-        else
-            this._active.marker.setLatLng(closest);
+        this._active.marker.setLatLng(closest);
+
+        // In case of a polygon, we want to hide the marker while we are hovering the fill, we only want to show
+        // it while we are hovering the outline.
+        const shouldBeVisible = closest.distance <= this._active.layer.options.weight! / 2 + 1;
+        const isVisible = this._map.hasLayer(this._active.marker);
+        if (shouldBeVisible && !isVisible)
+            this._map.addLayer(this._active.marker);
+        else if (!shouldBeVisible && isVisible)
+            this._map.removeLayer(this._active.marker);
     };
 
     handleMarkerDragStart = () => {
@@ -76,22 +98,33 @@ class DraggableLines extends Handler {
             return;
 
         const latlng = this._active.marker.getLatLng();
-        this._active!.dragStart = latlng;
-        this.fire('dragstart', { layer: this._active.layer, from: latlng, to: latlng });
+        this._active!.dragFrom = latlng;
+        const idx = getInsertPosition(this._map, this._active.layer.getLatLngs() as any, latlng, this.options.allowExtendingLine, this._active.layer instanceof Polygon);
+        this._active!.dragIdx = idx;
+
+        if (this.options.autoApply)
+            this._active.layer.setLatLngs(insertAtPosition(this._active.layer.getLatLngs() as any, latlng, idx));
+
+        this.fire('dragstart', { layer: this._active.layer, from: latlng, to: latlng, idx });
     };
 
     handleMarkerDrag = () => {
         if (!this._active)
             return;
 
-        this.fire('drag', { layer: this._active.layer, from: this._active.dragStart, to: this._active.marker.getLatLng() });
+        const latlng = this._active.marker.getLatLng();
+
+        if (this.options.autoApply)
+            this._active.layer.setLatLngs(updateAtPosition(this._active.layer.getLatLngs() as any, latlng, this._active.dragIdx!));
+
+        this.fire('drag', { layer: this._active.layer, from: this._active.dragFrom!, to: latlng, idx: this._active.dragIdx! });
     }
 
     handleMarkerDragEnd = () => {
         if (!this._active)
             return;
 
-        const event = { layer: this._active.layer, from: this._active.dragStart, to: this._active.marker.getLatLng() }
+        const event = { layer: this._active.layer, from: this._active.dragFrom!, to: this._active.marker.getLatLng(), idx: this._active.dragIdx! }
 
         this.unsetActive();
 
@@ -152,3 +185,5 @@ declare module "leaflet" {
 }
 
 L.DraggableLines = DraggableLines;
+
+export default DraggableLines;
