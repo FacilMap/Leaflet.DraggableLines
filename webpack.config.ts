@@ -1,4 +1,5 @@
 import { Configuration } from "webpack";
+import svgToMiniDataURI from "mini-svg-data-uri";
 
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
@@ -28,7 +29,16 @@ module.exports = (env: any, argv: any): Configuration => {
 				{
 					test: /\.css$/,
 					use: [ 'style-loader', 'css-loader' ]
-				}
+				},
+				{
+					test: /\.svg$/i,
+					use: [{
+						loader: 'url-loader',
+						options: {
+							generator: (content: any) => svgToMiniDataURI(content.toString())
+						}
+					}]
+				  }
 			]
 		},
 		externals : {

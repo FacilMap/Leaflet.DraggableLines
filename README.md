@@ -1,9 +1,15 @@
 Leaflet.DraggableLines
 ======================
 
-Leaflet.DraggableLines is a Leaflet plugin that makes it possible to add additional waypoints or corners to routes, lines and polygons
-by drag&drop. The way it works is that while hovering the line, a temporary marker appears at the position of the mouse cursor. When the
-user drags the marker, it is added as a new point to the shape.
+Leaflet.DraggableLines is a Leaflet plugin that makes it possible to change the shape of routes, lines and polygons by drag&drop.
+It add the following interactions to Polylines and its subclasses (such as Polygons):
+* A marker is added to each point on the line. This point can be dragged around to change the shape of the line. Unless disabled
+  via the `removeOnClick` option, unless that would cause the line to have less than 2 (3 for polygons) points.
+* While hovering anywhere on the line, a temporary marker appears that follows the mouse cursor. This point can be clicked or dragged
+  to add an additional corner/waypoint in that place.
+
+There is support for MultiPolylines, for Polygons with holes and for Polylines based on calculated routes (where dragging should
+update the route points rather than the coordinates of the Polyline).
 
 Tip: Use it together with [Leaflet.HighlightableLayers](https://github.com/FacilMap/Leaflet.HighlightableLayers) to make it easier to
 drag thin lines.
@@ -38,8 +44,8 @@ const draggable = new L.DraggableLines(map);
 draggable.enable();
 ```
 
-By default, `L.DraggableLines` makes all Polylines and Polygons on the map draggable, including ones that are added after it
-has been enabled.
+By default, `L.DraggableLines` makes all Polylines and Polygons with `interactive: true` on the map draggable, including ones that
+are added after it has been enabled.
 
 
 ### Usage for routes
@@ -48,43 +54,39 @@ A route is usually a Polyline whose points are calculated to be the best path to
 some specified waypoints. When you drag a route, you don't want the shape of the underlying Polyline to be modified directly, but
 you rather want a new waypoint to be inserted and the route to be recalculated based on that.
 
-To achieve this, you can disable the `autoApply` option to disable the automatic adjustment of the Polyline when dragging.
-The events fired by Leaflet.DraggableLines can than be used in connection with some helper functions to manually add the way point.
+Leaflet.DraggableLines adds an additional option `draggableLayersRoutePoints` to Polyline and all classes inheriting from it.
+Passsing this option will cause Leaflet.DraggableLines to modify the points in this option rather than the points of the line itself
+when the user interacts with the line. (**Note:** To update the route points of an existing line, call
+`layer.setDraggableLayersRoutePoints(latlngs)` rather than setting the option by hand. This way Leaflet.DraggableLines will notice
+the change and update the drag markers accordingly.)
+
+Since the value of this option does not have any effect on the line itself, you need to recalculate the route every time the user
+has changed the course of the route. You can do this by subscribing to the events `dragend` (the user has finished dragging a point),
+`remove` (the user has removed a point by clicking on it) and `insert` (the user has added a point by clicking the line).
 
 ```javascript
-const wayPoints = [53.09897, 12.02728], [52.01701, 14.18884];
-const route = new L.Polyline().addTo(map);
+const route = new L.Polyline([], { draggableLayersRoutePoints: [[53.09897, 12.02728], [52.01701, 14.18884]] }).addTo(map);
 async function updateRoute() {
-	route.setLatLngs(await calculateRoute(waypoints));
+	route.setLatLngs(await calculateRoute(route.getDraggableLayerRoutePoints()));
 }
 updateRoute();
 
-const draggable = new L.DraggableLines(map, { autoApply: false });
+const draggable = new L.DraggableLines(map);
 draggable.enable();
 
-draggable.on("dragend", (e) => {
-	const idx = L.DraggableLines.getRouteInsertPosition(map, wayPoints, route.getLatLngs(), e.from);
-	wayPoints.splice(idx, 0, e.to);
-	updateRoute();
+draggable.on("dragend remove insert", (e) => {
+	if (e.layer === route)
+		updateRoute();
 });
 ```
-
-This will insert an additional waypoint as soon as the user has finished dragging.
 
 It is also possible to continuously update the route as the user is dragging. For this, it is advisable to wrap the `updateRoute` function
 with [debounce](https://lodash.com/docs/#debounce) to make sure that the route is not calculated on every pixel.
 
 ```javascript
-let idx;
-
-draggable.on("dragstart", (e) => {
-	idx = L.DraggableLines.getRouteInsertPosition(map, wayPoints, route.getLatLngs(), e.from);
-	wayPoints.splice(idx, 0, e.from);
-});
-
 draggable.on("drag", debounce((e) => {
-	wayPoints[idx] = e.to;
-	updateRoute();
+	if (e.layer === route)
+		updateRoute();
 }));
 ```
 
@@ -92,9 +94,7 @@ draggable.on("drag", debounce((e) => {
 ### Enabling for specific layers only
 
 You can use the `enableForLayer` option to decide which layers are made draggable automatically. By default, this callback returns
-true for all objects that are instances of `L.Polyline` (including `L.Polygon` because it is a subtype of `L.Polyline`).
-Note that only layer instances of `L.Polyline` and classes that inherit from it are supported. Returning `true` for another
-type of layer will not work properly.
+true for all Polylines (including `L.Polygon` because it is a subtype of `L.Polyline`) that have `interactive: true`.
 
 An example how to control whether dragging is enabled for a particular layer would be to introduce a custom option:
 ```javascript
@@ -102,13 +102,12 @@ L.Polyline([[53.09897, 12.02728], [52.01701, 14.18884]], { enableDraggableLines:
 L.Polyline([[52.93871, 11.92566], [52.73629, 12.57935]], { enableDraggableLines: false }).addTo(map);
 
 new L.DraggableLines(map, {
-	enableForLayer: (layer) => (layer instanceof L.Polyline && layer.options.enableDraggableLines)
+	enableForLayer: (layer) => (layer.options.enableDraggableLines)
 }).enable();
 ```
 
 An alternative way is to manually enable dragging for specific layers using the `enableForLayer` method. To disable automatic enabling
-for all layers, either pass a function that always returns `false` as `enableForLayer`, or simply don't call `enable()` an the
-`L.DraggableLines` instance:
+for all layers, pass a function that always returns `false` as `enableForLayer`:
 ```javascript
 const layer1 = L.Polyline([[53.09897, 12.02728], [52.01701, 14.18884]]).addTo(map);
 const layer2 = L.Polyline([[52.93871, 11.92566], [52.73629, 12.57935]]).addTo(map);
@@ -116,6 +115,7 @@ const layer2 = L.Polyline([[52.93871, 11.92566], [52.73629, 12.57935]]).addTo(ma
 const draggable = new L.DraggableLines(map, {
 	enableForLayer: () => false
 });
+draggable.enable();
 draggable.enableForLayer(layer1);
 ```
 
@@ -125,35 +125,39 @@ draggable.enableForLayer(layer1);
 You can pass the following options as the second parameter to `L.DraggableLines`:
 
 * `enableForLayer`: A callback that receives a layer as its parameter and needs to return a boolean that decides whether dragging
-  should be enabled for this layer. This is called for all existing layers when `enable()` is called on the `L.DraggableLines` object,
-  and for any layer that is added to the map while it is enabled. Only layers that are instances of `L.Polyline` or its sub classes
-  are supported, so you should always check for that using `layer instanceof L.Polyline` and return false otherwise.
-  By default this returns true for all supported layers.
-* `icon`: An instance of `L.Icon` that should be used for the temporary marker that appears while you hover and drag a line.
+  should be enabled for this layer. This is called for all existing Polyline layers when `enable()` is called on the `L.DraggableLines`
+  object, and for any Polyline that is added to the map while it is enabled.
+  By default this returns true for all Polylines that have `interactive: true`.
+* `icon`: An instance of `L.Icon` that should be used for draggable points on the line. Defaults to a blue marker. If you want
+  draggable points to be invisible but still draggable, you need to pass an invisible icon with the desired dimensions of the
+  draggable area here.
+* `startIcon`: An instance of `L.Icon` that should be used for the start point of the line (not applicable for polygons). Defaults to
+  a green marker.
+* `endIcon`: An instance of `L.Icon` that should be used for the end point of the line (not applicable for polygons). Defaults to
+  a red marker.
+* `dragIcon`: An instance of `L.Icon` that should be used for the temporary marker that appears while you hover and drag a line.
+  Defaults to a blue marker.
 * `allowExtendingLine`: If `true` (default), users are allowed to drag the line in a way that adds additional points before the first
   point and after the last point. Has no effect on Polygons.
-* `autoApply`: If `true` (default), automatically adjust the points of a Polyline/Polygon when the user is dragging it. If `false`,
-  a temporary marker still appears when the user hovers the line and this marker can be dragged around, but the line is not affected
-  by this. When the drag operation ends, the marker simply disappears. When using this option, you can customize the effects of the
-  drag operation by subscribing to the drag events of the `L.DraggableLines` instance.
+
 
 ### Events
 
 #### `dragstart`, `drag`, `dragend`
 
-`dragstart` is fired when the user starts to drag the temporary marker. `drag` is fired continuously as the user moves the marker
+`dragstart` is fired when the user starts to drag a marker. `drag` is fired continuously as the user moves the marker
 around (if you subscribe to this event, it might make sense to debounce the handler). `dragend` is fired after the user releases
-the mouse and the temporary marker is removed.
+the mouse.
 
 All 3 events carry an object with the following properties:
-* `layer`: The layer which is being dragged
-* `from`: An `L.LatLng` instance with the coordinates where the dragging started. These coordinates will be exactly on the line
-  (even if the mouse cursor was outside of the center of the line when the dragging started), but they will probably not be equal
-  to a line point (rather, the point will be somewhere in between two line points).
+* `layer`: The Polyline which is being dragged
+* `from`: An `L.LatLng` instance with the coordinates where the dragging started. In case of a point marker, this will be the
+  coordinates of the point. In case of a temporary marker, these coordinates will be exactly on the line, but they will most likely
+  not equal any existing point, but rather be somewhere in between two existing points.
 * `to`: An `L.LatLng` instance with the coordinates where the marker is currently being dragged. In case of a `dragstart` event,
   this is equal to `from`. In case of a `dragend` event, this is the final position of the drag marker.
-* `idx`: The index where the new point should be inserted. For example, on a Polyline that has 3 points A, B and C, and the user
-  starts dragging the line between point A and B, `idx` will be `1`, because the new point needs to be inserted at index `1`
+* `idx`: The index where the new point was inserted. For example, on a Polyline that has 3 points A, B and C, and the user
+  starts dragging the line between point A and B, `idx` will be `1`, because the new point is inserted at index `1`
   (`latlngs.splice(event.idx, 0, event.to)`).
 
   In case of a multi-line (a Polyline constructed with an array or arrays of coordinates) or a Polygon (where `getLatLngs()`
@@ -163,89 +167,31 @@ All 3 events carry an object with the following properties:
 
   See below for some helper methods that make it easier to insert a point into an array of coordinates or an array of arrays of
   coordinates.
+* `isNew`: `true` if the dragged marker is a temporary marker (adding a new point to the line). `false` if it is an existing point.
+
+#### `remove`
+
+Fired when the user removed a point by clicking it. Only fired if the `removeOnClick` options is not disabled.
+
+Carries an object with the following properties:
+* `layer`: The Polyline from which the point has been removed
+* `idx`: The index where the point was removed. A number for simple Polylines, a tuple of two numbers for a MultiPolyline or
+  a Polygon.
+
+#### `insert`
+
+Fired when the user added a point by clicking the line.
+
+Carries an object with the following properties:
+* `layer`: The Polyline which has been clicked
+* `idx`: The index where the point was inserted. A number for simple Polylines, a tuple of two numbers for a MultiPolyline or
+  a Polygon.
+* `latlng`: An instance of `L.LatLng` with the coordinates of the new point.
+
 
 ### Methods
 
 These methods can be called on instances of `L.DraggableLines`.
 
-* `enable()`: When called, enables dragging for all supported layer that are currently on the map (or, if an `enableForLayer` option
-  is specified, for all layers for which that returns true). Registers an event handler that will enable dragging for all supported
-  layers that are added to the map laters.
-* `disable()`: Disables dragging for all layers on the map and disables the auto-enabling event handlers.
 * `enableForLayer(layer)`: Manually enable dragging for a specific layer.
 * `disableForLayer(layer)`: Manually disable dragging for a specific layer.
-
-### Helpers
-
-### `L.DraggableLines.getInsertPosition(map, points, point, allowExtendingLine?, isPolygon?)`
-
-If `points` is the array of coordinates or array of arrays of coordinates that a Polyline/Polygon consists of and `point` is the
-coordinates where the dragging starts, this method returns the index in the `points` array where the new point should be inserted.
-The returned value is a number of a tuple of two numbers, depending on whether `points` is an array or an array of arrays.
-
-For example, by default, `Leaflet.DraggableLines` inserts a new point to the line in the `dragstart` handler like so:
-
-```javascript
-draggable.on('dragstart', (e) => {
-	const idx = getInsertPosition(map, e.layer.getLatLngs(), e.from, draggable.options.allowExtendingLine, e.layer instanceof Polygon);
-	e.layer.setLatLngs(insertAtPosition(e.layer.getLatLngs(), latlng, idx));
-});
-```
-
-**Parameters:**
-
-* `map`: The instance of `L.Map`.
-* `points`: An array of coordinates or array of arrays of coordinates as returned by `layer.getLatLngs()`.
-* `point`: An instance of `L.LatLng` that represents the point on the line where dragging has started.
-* `allowExtendingLine`: If `true` (default), will return `0` or `points.length` if the dragging has started before the beginning
-  or after the end of the line. If `false`, will always return at least `1` and at most `points.length - 1` to prevent the
-  beginning/end of the line to be modified. Has no effect if `isPolygon` is `true`.
-* `isPolygon`: If `true`, `points` will be considered to be the coordinates of a polygon, if `false` (default), it will be considered
-  the coordinates of a line. The difference between a polygon and a line is that in a polygon, the first point and the last point
-  of the coordinates listed in `points` are connected by an additional segment that can also be dragged.
-
-
-### `L.DraggableLines.getRouteInsertPosition(map, routePoints, trackPoints, point)`
-
-Similar to `getInsertPosition`, but for a line where the points returned by `getLatLngs()` (“track points”) are a route that has been
-calculated to be the best connection between a set of waypoints (“route points”). Dragging starts on a segment between two track
-points, but should lead an additional point in the set of route points rather than track points, so that the route can be recalculated.
-This method returns the index where the new route point should be inserted into the array of route points.
-
-See the examples above for how to use this method.
-
-**Parameters:**
-
-* `map`: The instance of `L.Map`.
-* `routePoints`: An array of coordinates that are the waypoints that are used as the basis for calculating the route.
-* `trackPoints`: An array of coordinates as returned by `layer.getLatLngs()`.
-* `point`: An instance of `L.LatLng` that represents the point on the line where dragging has started.
-
-
-### `L.DraggableLines.insertAtPosition(arr, item, idx)`
-
-Returns a copy of the `arr` array with `item` inserted at the index `idx`. `arr` can be an array or an array of arrays (as
-returned by `getLatLngs()` on a Polyline/Polygon), and `idx` can be a number or a tuple of two numbers as returned by
-`L.DraggableLines.getInsertPosition()` (and as passed along with the drag events). This method can be used to easily insert
-a new point at the right position:
-
-```javascript
-draggable.on('dragstart', (e) => {
-	e.layer.setLatLngs(insertAtPosition(e.layer.getLatLngs(), e.from, e.idx));
-});
-```
-
-### `L.DraggableLines.updateAtPosition(arr, item, idx)`
-
-Like `L.DraggableLines.insertAtPosition`, but overwrites the item at the given index instead of inserting it there.
-
-Returns a copy of the `arr` array with the item at index `idx` overwritten with `item`. `arr` can be an array or an array
-of arrays (as returned by `getLatLngs()` on a Polyline/Polygon), and `idx` can be a number or a tuple of two numbers as
-returned by `L.DraggableLines.getInsertPosition()` (and as passed along with the drag events). This method can be used
-to easily update a new point at the right position while the user is dragging:
-
-```javascript
-draggable.on('drag', (e) => {
-	e.layer.setLatLngs(updateAtPosition(e.layer.getLatLngs(), e.from, e.idx));
-});
-```

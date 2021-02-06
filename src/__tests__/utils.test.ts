@@ -1,4 +1,4 @@
-import { insertAtPosition, updateAtPosition } from "../utils";
+import { insertAtPosition, removeFromPosition, updateAtPosition } from "../utils";
 
 test('insertAtPosition', () => {
     expect(insertAtPosition(['a', 'b'], '0', 0)).toEqual(['0', 'a', 'b']);
@@ -21,4 +21,14 @@ test('updateAtPosition', () => {
     expect(updateAtPosition([['a', 'b'], ['c', 'd']], '01', [0, 1])).toEqual([['a', '01'], ['c', 'd']]);
     expect(updateAtPosition([['a', 'b'], ['c', 'd']], '10', [1, 0])).toEqual([['a', 'b'], ['10', 'd']]);
     expect(updateAtPosition([['a', 'b'], ['c', 'd']], '11', [1, 1])).toEqual([['a', 'b'], ['c', '11']]);
+});
+
+test('removeFromPosition', () => {
+    expect(removeFromPosition(['a', 'b'], 0)).toEqual(['b']);
+    expect(removeFromPosition(['a', 'b'], 1)).toEqual(['a']);
+
+    expect(removeFromPosition([['a', 'b'], ['c', 'd']], [0, 0])).toEqual([['b'], ['c', 'd']]);
+    expect(removeFromPosition([['a', 'b'], ['c', 'd']], [0, 1])).toEqual([['a'], ['c', 'd']]);
+    expect(removeFromPosition([['a', 'b'], ['c', 'd']], [1, 0])).toEqual([['a', 'b'], ['d']]);
+    expect(removeFromPosition([['a', 'b'], ['c', 'd']], [1, 1])).toEqual([['a', 'b'], ['c']]);
 });
