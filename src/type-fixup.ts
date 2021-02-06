@@ -12,8 +12,12 @@ declare module "leaflet" {
         //getLatLngs(): LatLng[] | LatLng[][];
     }
 
+    interface Marker {
+        _icon: HTMLElement;
+    }
+
     namespace Draggable {
-        const _dragging: any;
+        const _dragging: Draggable;
     }
 
     namespace LineUtil {

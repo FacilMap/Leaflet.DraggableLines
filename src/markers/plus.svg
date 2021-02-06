@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+    <g transform="matrix(.02604 0 0 .02604 1.302 1.302)" fill="none" stroke="#000" opacity="0.3">
+        <circle cx="410.9" cy="410.9" r="410.9" color="#000" overflow="visible" stroke-width="100" />
+        <path d="M410.9 223.2v375.4M598.6 410.9H223.2" stroke-width="120" stroke-linecap="round" />
+    </g>
+</svg>

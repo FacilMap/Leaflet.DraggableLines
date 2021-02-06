@@ -1,49 +1,43 @@
 import { latLng, LatLngExpression, Marker, Polyline } from "leaflet";
 
-Polyline.prototype.hasDraggableLayersRoutePoints = function() {
-    return this.options.draggableLayersRoutePoints != null;
+Polyline.prototype.hasDraggableLinesRoutePoints = function() {
+    return this.options.draggableLinesRoutePoints != null;
 };
 
-Polyline.prototype.getDraggableLayersRoutePoints = function() {
-    return this.options.draggableLayersRoutePoints?.map((p) => latLng(p));
+Polyline.prototype.getDraggableLinesRoutePoints = function() {
+    return this.options.draggableLinesRoutePoints?.map((p) => latLng(p));
 };
 
-Polyline.prototype.setDraggableLayersRoutePoints = function(routePoints: LatLngExpression[] | undefined) {
-    this.options.draggableLayersRoutePoints = routePoints;
-    this.fire('draggableLayers-setRoutePoints');
+Polyline.prototype.setDraggableLinesRoutePoints = function(routePoints: LatLngExpression[] | undefined) {
+    this.options.draggableLinesRoutePoints = routePoints;
+    this.fire('draggableLines-setRoutePoints');
 };
 
 const setLatLngsBkp = Polyline.prototype.setLatLngs;
 Polyline.prototype.setLatLngs = function(...args: any) {
     const result = setLatLngsBkp.apply(this, args);
-    this.fire('draggableLayers-setLatLngs');
+    this.fire('draggableLines-setLatLngs');
     return result;
 };
 
 interface PolylineInfo {
-    markers: Marker[];
-}
-
-interface MarkerInfo {
-    idx: number | [number, number];
+    dragMarkers: Marker[];
+    plusMarkers: Marker[];
+    zoomEndHandler: () => void;
 }
 
 declare module "leaflet" {
     interface Polyline {
-        hasDraggableLayersRoutePoints: () => boolean;
-        getDraggableLayersRoutePoints: () => LatLng[] | undefined;
-        setDraggableLayersRoutePoints: (routePoints: LatLngExpression[] | undefined) => void;
+        hasDraggableLinesRoutePoints: () => boolean;
+        getDraggableLinesRoutePoints: () => LatLng[] | undefined;
+        setDraggableLinesRoutePoints: (routePoints: LatLngExpression[] | undefined) => void;
     }
 
     interface PolylineOptions {
-        draggableLayersRoutePoints?: LatLngExpression[];
+        draggableLinesRoutePoints?: LatLngExpression[];
     }
 
     interface Polyline {
-        _draggableLayers?: PolylineInfo;
-    }
-
-    interface Marker {
-        _draggableLayers?: MarkerInfo;
+        _draggableLines?: PolylineInfo;
     }
 }

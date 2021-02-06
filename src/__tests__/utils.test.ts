@@ -1,4 +1,14 @@
-import { insertAtPosition, removeFromPosition, updateAtPosition } from "../utils";
+import { getFromPosition, insertAtPosition, removeFromPosition, updateAtPosition } from "../utils";
+
+test('getFromPosition', () => {
+    expect(getFromPosition(['a', 'b'], 0)).toEqual('a');
+    expect(getFromPosition(['a', 'b'], 1)).toEqual('b');
+    
+    expect(getFromPosition([['a', 'b'], ['c', 'd']], [0, 0])).toEqual('a');
+    expect(getFromPosition([['a', 'b'], ['c', 'd']], [0, 1])).toEqual('b');
+    expect(getFromPosition([['a', 'b'], ['c', 'd']], [1, 0])).toEqual('c');
+    expect(getFromPosition([['a', 'b'], ['c', 'd']], [1, 1])).toEqual('d');
+});
 
 test('insertAtPosition', () => {
     expect(insertAtPosition(['a', 'b'], '0', 0)).toEqual(['0', 'a', 'b']);

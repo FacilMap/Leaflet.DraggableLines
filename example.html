@@ -43,9 +43,9 @@
 				], { weight: 10 }).addTo(map);
 			}, 100);
 
-			const routeLayer = new L.HighlightableLayers.Polyline([], { draggableLayersRoutePoints: [[52.61139, 11.86523], [52.50285, 14.13666]] }).addTo(map);
+			const routeLayer = new L.HighlightableLayers.Polyline([], { draggableLinesRoutePoints: [[52.61139, 11.86523], [52.50285, 14.13666]] }).addTo(map);
 			async function calculateRoute() {
-				const route = await fetch(`https://router.project-osrm.org/route/v1/driving/${routeLayer.getDraggableLayersRoutePoints().map((p) => `${p.lng},${p.lat}`).join(';')}?geometries=geojson`).then((res) => res.json());
+				const route = await fetch(`https://router.project-osrm.org/route/v1/driving/${routeLayer.getDraggableLinesRoutePoints().map((p) => `${p.lng},${p.lat}`).join(';')}?geometries=geojson`).then((res) => res.json());
 				routeLayer.setLatLngs(route.routes[0].geometry.coordinates.map((p) => [p[1], p[0]]));
 			}
 			calculateRoute();

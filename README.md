@@ -7,12 +7,16 @@ It add the following interactions to Polylines and its subclasses (such as Polyg
   via the `removeOnClick` option, unless that would cause the line to have less than 2 (3 for polygons) points.
 * While hovering anywhere on the line, a temporary marker appears that follows the mouse cursor. This point can be clicked or dragged
   to add an additional corner/waypoint in that place.
+* Unless disabled via the `allowExtendingLine` option, a plus icon is rendered at the beginning and end of each line (not for polygons).
+  Clicking or dragging this icon will add a new point before the first point or after the last point of the line.
 
 There is support for MultiPolylines, for Polygons with holes and for Polylines based on calculated routes (where dragging should
 update the route points rather than the coordinates of the Polyline).
 
 Tip: Use it together with [Leaflet.HighlightableLayers](https://github.com/FacilMap/Leaflet.HighlightableLayers) to make it easier to
 drag thin lines.
+
+[Demo](https://unpkg.com/leaflet-draggable-lines/example.html)
 
 
 Usage
@@ -54,10 +58,10 @@ A route is usually a Polyline whose points are calculated to be the best path to
 some specified waypoints. When you drag a route, you don't want the shape of the underlying Polyline to be modified directly, but
 you rather want a new waypoint to be inserted and the route to be recalculated based on that.
 
-Leaflet.DraggableLines adds an additional option `draggableLayersRoutePoints` to Polyline and all classes inheriting from it.
+Leaflet.DraggableLines adds an additional option `draggableLinesRoutePoints` to Polyline and all classes inheriting from it.
 Passsing this option will cause Leaflet.DraggableLines to modify the points in this option rather than the points of the line itself
 when the user interacts with the line. (**Note:** To update the route points of an existing line, call
-`layer.setDraggableLayersRoutePoints(latlngs)` rather than setting the option by hand. This way Leaflet.DraggableLines will notice
+`layer.setDraggableLinesRoutePoints(latlngs)` rather than setting the option by hand. This way Leaflet.DraggableLines will notice
 the change and update the drag markers accordingly.)
 
 Since the value of this option does not have any effect on the line itself, you need to recalculate the route every time the user
@@ -65,9 +69,9 @@ has changed the course of the route. You can do this by subscribing to the event
 `remove` (the user has removed a point by clicking on it) and `insert` (the user has added a point by clicking the line).
 
 ```javascript
-const route = new L.Polyline([], { draggableLayersRoutePoints: [[53.09897, 12.02728], [52.01701, 14.18884]] }).addTo(map);
+const route = new L.Polyline([], { draggableLinesRoutePoints: [[53.09897, 12.02728], [52.01701, 14.18884]] }).addTo(map);
 async function updateRoute() {
-	route.setLatLngs(await calculateRoute(route.getDraggableLayerRoutePoints()));
+	route.setLatLngs(await calculateRoute(route.getDraggableLinesRoutePoints()));
 }
 updateRoute();
 
@@ -94,7 +98,8 @@ draggable.on("drag", debounce((e) => {
 ### Enabling for specific layers only
 
 You can use the `enableForLayer` option to decide which layers are made draggable automatically. By default, this callback returns
-true for all Polylines (including `L.Polygon` because it is a subtype of `L.Polyline`) that have `interactive: true`.
+true for all Polylines that have `interactive: true` (including polygons because `L.Polygon` is a sub-type of `L.Polyline`). The callback
+is only called for Polylines and its sub-types. Other types are not supported.
 
 An example how to control whether dragging is enabled for a particular layer would be to introduce a custom option:
 ```javascript
@@ -128,20 +133,27 @@ You can pass the following options as the second parameter to `L.DraggableLines`
   should be enabled for this layer. This is called for all existing Polyline layers when `enable()` is called on the `L.DraggableLines`
   object, and for any Polyline that is added to the map while it is enabled.
   By default this returns true for all Polylines that have `interactive: true`.
-* `icon`: An instance of `L.Icon` that should be used for draggable points on the line. Defaults to a blue marker. If you want
-  draggable points to be invisible but still draggable, you need to pass an invisible icon with the desired dimensions of the
-  draggable area here.
-* `startIcon`: An instance of `L.Icon` that should be used for the start point of the line (not applicable for polygons). Defaults to
-  a green marker.
-* `endIcon`: An instance of `L.Icon` that should be used for the end point of the line (not applicable for polygons). Defaults to
-  a red marker.
+* `startIcon`: An instance of `L.Icon` that should be used for the draggable marker at the start point of a line (not applicable for
+  polygons). Defaults to a green marker.
+* `endIcon`: An instance of `L.Icon` that should be used for the draggable marker at the end point of the line (not applicable for
+  polygons). Defaults to a red marker.
+* `viaIcon`: An instance of `L.Icon` that should be used for draggable points on the line that are not the start point or end point.
+  Defaults to a blue marker.
 * `dragIcon`: An instance of `L.Icon` that should be used for the temporary marker that appears while you hover and drag a line.
   Defaults to a blue marker.
+* `plusIcon`: An instance of `L.Icon` that should be used for the plus icon before the start and after the end of draggable lines.
+  Defaults to a circle with a + inside. Has no effect if `allowExtendingLine` is `false`.
 * `allowExtendingLine`: If `true` (default), users are allowed to drag the line in a way that adds additional points before the first
-  point and after the last point. Has no effect on Polygons.
+  point and after the last point. This will add draggable plus icons before the start and after the end of each line. Has no effect
+  on Polygons.
+
+**Note:** If you want to enable dragging behaviour without showing any drag markers, you need to pass an invisible icon with the
+dimensions of the desired draggable areas.
 
 
 ### Events
+
+These events are fired on the `L.DraggableLines` instance.
 
 #### `dragstart`, `drag`, `dragend`
 
@@ -195,3 +207,35 @@ These methods can be called on instances of `L.DraggableLines`.
 
 * `enableForLayer(layer)`: Manually enable dragging for a specific layer.
 * `disableForLayer(layer)`: Manually disable dragging for a specific layer.
+
+
+### Polyline extensions
+
+Leaflet.DraggableLines adds various methods and options to the Polyline subclass. These can be used with any instances of
+Polyline and its subclasses.
+
+#### Options
+
+* `draggableLinesRoutePoints`: An array of LatLng expressions that represent the waypoints of the route that this Polyline
+  represents. When this option is set, Leaflet.DraggableLines renders the points from this array instead of the ones
+  from `getLatLngs()` as draggable markers, and when the route is dragged it modifies this array instead of the actual
+  points of the line.
+  
+  This is only supported for single polylines, it is not supported for Polygons or MultiPolylines
+  where `getLatLngs()` returns an array of arrays.
+
+  To update the route points of an existing line, use the `setDraggableLinesRoutePoints` method rather than setting
+  `layer.options.draggableLinesRoutePoints` manually, to make sure that L.DraggableLines notices the change and
+  updates the positions of the drag markers.
+
+#### Methods
+
+* `hasDraggableLinesRoutePoints()`: Returns a boolean whether this Polyline has `draggableLinesRoutePoints` set.
+* `getDraggableLinesRoutePoints()`: Returns the `draggableLinesRoutePoints` option as an array of `L.LatLng` instances.
+* `setDraggableLinesRoutePoints(routePoints)`: Update the `draggableLinesRoutePoints` option.
+
+#### Events
+
+* `draggableLines-setLatLngs`: Fired after the points of this layer are updated using the `setLatLngs()` method.
+* `draggableLines-setRoutePoints`: Fired after the `draggableLinesRoutePoints` option is updated using the
+  `setDraggableLinesRoutePoints` method.
