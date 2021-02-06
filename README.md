@@ -4,11 +4,14 @@ Leaflet.DraggableLines
 Leaflet.DraggableLines is a Leaflet plugin that makes it possible to change the shape of routes, lines and polygons by drag&drop.
 It add the following interactions to Polylines and its subclasses (such as Polygons):
 * A marker is added to each point on the line. This point can be dragged around to change the shape of the line. Unless disabled
-  via the `removeOnClick` option, unless that would cause the line to have less than 2 (3 for polygons) points.
+  via the `removeOnClick` option, clicking/tapping this point will remove it (unless that would cause the line to have less than
+  2 (3 for polygons) points).
 * While hovering anywhere on the line, a temporary marker appears that follows the mouse cursor. This point can be clicked or dragged
-  to add an additional corner/waypoint in that place.
+  to add an additional corner/waypoint in that place. On touch devices without a mouse cursor (smartphones, tablets), tapping a line
+  will add a new point at the tapped position. This point can then be dragged around.
 * Unless disabled via the `allowExtendingLine` option, a plus icon is rendered at the beginning and end of each line (not for polygons).
-  Clicking or dragging this icon will add a new point before the first point or after the last point of the line.
+  Clicking/tapping will add a new point before the first point or after the last point of the line. Hovering this icon will show
+  a temporary marker that can be dragged around to add a new point there.
 
 There is support for MultiPolylines, for Polygons with holes and for Polylines based on calculated routes (where dragging should
 update the route points rather than the coordinates of the Polyline).

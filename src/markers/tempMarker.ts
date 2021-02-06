@@ -32,6 +32,8 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
     onAdd(map: Map) {
         super.onAdd(map);
 
+        console.log('add');
+
         map.on("mousemove", this.handleMapMouseMove, this);
         this.on('click', this.handleClick, this);
 

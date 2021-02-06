@@ -40,7 +40,11 @@ export function getInsertPosition(map: Map, points: LatLng[] | LatLng[][], point
     const polyline = L.polyline(isPolygon ? [...points, points[0]] : points);
     const pos = GeometryUtil.locateOnLine(map, polyline, point);
     const before = L.GeometryUtil.extract(map, polyline, 0, pos);
-    return Math.max(1, Math.min(points.length - 1, before.length - 1));
+    
+    let idx = before.length - 1;
+    if (!isPolygon)
+        idx = Math.max(1, Math.min(points.length - 1, idx));
+    return idx;
 }
 
 

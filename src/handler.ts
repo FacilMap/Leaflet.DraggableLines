@@ -72,9 +72,13 @@ export default class DraggableLinesHandler extends Handler {
 
     handleLayerSetLatLngs = (e: LeafletEvent) => {
         const layer = e.target as Polyline;
-        if (!Draggable._dragging && layer._draggableLines) {
-            this.drawDragMarkers(layer);
-            this.drawPlusMarkers(layer);
+        if (!Draggable._dragging) {
+            this.removeTempMarker();
+
+            if (layer._draggableLines) {
+                this.drawDragMarkers(layer);
+                this.drawPlusMarkers(layer);
+            }
         }
     };
 
