@@ -1,5 +1,5 @@
-import { Draggable, GeometryUtil, Icon, latLng, LatLng, LatLngExpression, LeafletMouseEvent, Map, Point, Polygon, Polyline, Util } from "leaflet";
-import DraggableLinesHandler, { DraggableLinesHandlerOptions } from "../handler";
+import { DomEvent, Draggable, GeometryUtil, Icon, latLng, LatLng, LatLngExpression, LeafletMouseEvent, Map, Polygon, Polyline, Util } from "leaflet";
+import DraggableLinesHandler from "../handler";
 import { getInsertPosition, getRouteInsertPosition, setPoint } from "../utils";
 import DraggableLinesMarker from "./marker";
 
@@ -32,9 +32,8 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
     onAdd(map: Map) {
         super.onAdd(map);
 
-        console.log('add');
-
         map.on("mousemove", this.handleMapMouseMove, this);
+        DomEvent.on(map.getContainer(), "mouseover", this.handleMapMouseOver, this); // Bind manually since map.on("mouseover") does not receive bubbling events
         this.on('click', this.handleClick, this);
 
         return this;
@@ -44,6 +43,7 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
         super.onRemove(map);
 
         map.off("mousemove", this.handleMapMouseMove, this);
+        DomEvent.off(map.getContainer(), "mouseover", this.handleMapMouseOver, this);
 
         return this;
     }
@@ -120,4 +120,11 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
         else if (!latlng && isVisible)
             this.hide();
     };
+
+
+    handleMapMouseOver(e: Event) {
+        if (e.target !== this.getElement() && e.target !== this._layer.getElement())
+            this.remove();
+    };
+
 }
