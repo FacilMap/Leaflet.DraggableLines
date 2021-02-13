@@ -1,4 +1,4 @@
-import { Icon, LatLng, LatLngExpression, Map, Polygon, Polyline } from "leaflet";
+import { Icon, LatLng, LatLngExpression, Map, MarkerOptions, Polygon, Polyline } from "leaflet";
 import DraggableLinesHandler from "../handler";
 import { removePoint } from "../utils";
 import DraggableLinesMarker from "./marker";
@@ -8,10 +8,10 @@ export default class DraggableLinesDragMarker extends DraggableLinesMarker {
     _idx: number | [number, number];
     _removeOnClick: boolean;
 
-    constructor(draggable: DraggableLinesHandler, layer: Polyline, latlng: LatLngExpression, idx: number | [number, number], icon: Icon, removeOnClick: boolean) {
+    constructor(draggable: DraggableLinesHandler, layer: Polyline, latlng: LatLngExpression, idx: number | [number, number], options: MarkerOptions, removeOnClick: boolean) {
         super(draggable, layer, latlng, false, {
-            icon,
-            draggable: true
+            draggable: true,
+            ...options
         });
 
         this._idx = idx;

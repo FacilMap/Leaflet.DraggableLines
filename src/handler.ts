@@ -1,4 +1,4 @@
-import L, { Draggable, Evented, Handler, Icon, LatLng, Layer, LeafletEvent, LeafletMouseEvent, LineUtil, Map, Marker, Polygon, Polyline } from 'leaflet';
+import L, { Draggable, Evented, Handler, Icon, LatLng, Layer, LeafletEvent, LeafletMouseEvent, LineUtil, Map, Marker, MarkerOptions, Polygon, Polyline } from 'leaflet';
 import GeometryUtil from 'leaflet-geometryutil';
 import { defaultIcon, endIcon, plusIcon, startIcon } from './markers/icons';
 import DraggableLinesDragMarker from './markers/dragMarker';
@@ -8,11 +8,10 @@ import { getPlusIconPoint } from './utils';
 
 export interface DraggableLinesHandlerOptions {
     enableForLayer?: boolean | ((layer: Polyline) => boolean);
-    viaIcon?: Icon;
-    startIcon?: Icon;
-    endIcon?: Icon;
-    dragIcon?: Icon;
-    plusIcon?: Icon;
+    dragMarkerOptions?: (layer: Polyline, i: number, length: number) => MarkerOptions;
+    tempMarkerOptions?: (layer: Polyline) => MarkerOptions;
+    plusMarkerOptions?: (layer: Polyline, isStart: boolean) => MarkerOptions;
+    plusTempMarkerOptions?: (layer: Polyline, isStart: boolean) => MarkerOptions;
     allowExtendingLine?: boolean;
     removeOnClick?: boolean;
 }
@@ -28,11 +27,18 @@ export default class DraggableLinesHandler extends Handler {
 
         this.options = {
             enableForLayer: (layer) => layer.options.interactive!,
-            startIcon,
-            endIcon,
-            viaIcon: defaultIcon,
-            dragIcon: defaultIcon,
-            plusIcon,
+            dragMarkerOptions: (layer, i, length) => ({
+                icon: layer instanceof Polygon ? defaultIcon : (i == 0 ? startIcon : i == length - 1 ? endIcon : defaultIcon)
+            }),
+            tempMarkerOptions: () => ({
+                icon: defaultIcon
+            }),
+            plusMarkerOptions: () => ({
+                icon: plusIcon
+            }),
+            plusTempMarkerOptions: (layer, isStart) => ({
+                icon: isStart ? startIcon : endIcon
+            }),
             allowExtendingLine: true,
             removeOnClick: true,
             ...options
@@ -96,15 +102,8 @@ export default class DraggableLinesHandler extends Handler {
                 const idx = isFlat ? j : [i, j] as [number, number];
 
                 let removeOnClick = this.options.removeOnClick!;
-                let icon = this.options.viaIcon!;
-                if (!(layer instanceof Polygon)) {
-                    icon = j == 0 ? this.options.startIcon! : j == routePoints[i].length - 1 ? this.options.endIcon! : icon;
-
-                    //if (j == 0 || j == routePoints[i].length - 1)
-                    //    removeOnClick = removeOnClick && this.options.allowExtendingLine!;
-                }
-
-                const marker = new DraggableLinesDragMarker(this, layer, routePoints[i][j], idx, icon, removeOnClick).addTo(this._map);
+                const options = this.options.dragMarkerOptions!(layer, j, routePoints[i].length);
+                const marker = new DraggableLinesDragMarker(this, layer, routePoints[i][j], idx, options, removeOnClick).addTo(this._map);
                 layer._draggableLines.dragMarkers.push(marker);
             }
         }
@@ -143,7 +142,9 @@ export default class DraggableLinesHandler extends Handler {
                 else
                     idx = isStart ? [i, 0] : [i, trackPoints[i].length];
                 
-                const marker = new DraggableLinesPlusMarker(this, layer, getPlusIconPoint(this._map, trackPoints[i], 24 + layer.options.weight! / 2, isStart), idx).addTo(this._map);
+                const options = this.options.plusMarkerOptions!(layer, isStart);
+                const tempMarkerOptions = this.options.plusTempMarkerOptions!(layer, isStart);
+                const marker = new DraggableLinesPlusMarker(this, layer, getPlusIconPoint(this._map, trackPoints[i], 24 + layer.options.weight! / 2, isStart), idx, options, tempMarkerOptions).addTo(this._map);
                 layer._draggableLines.plusMarkers.push(marker);
             }
         }
@@ -162,7 +163,8 @@ export default class DraggableLinesHandler extends Handler {
     drawTempMarker(layer: Polyline, latlng: LatLng) {
         this.removeTempMarker();
 
-        this._tempMarker = new DraggableLinesTempMarker(this, layer, GeometryUtil.closest(this._map, layer, latlng)!).addTo(this._map);
+        const options = this.options.tempMarkerOptions!(layer);
+        this._tempMarker = new DraggableLinesTempMarker(this, layer, GeometryUtil.closest(this._map, layer, latlng)!, options).addTo(this._map);
     }
 
     removeTempMarker() {

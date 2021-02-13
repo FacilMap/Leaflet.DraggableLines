@@ -138,16 +138,20 @@ You can pass the following options as the second parameter to `L.DraggableLines`
   object, and for any Polyline that is added to the map while it is enabled. Instead of a callback, a boolean can be specified
   to apply it to all layers (for example, passing `false` will disable automatic enabling for any layers).
   By default this returns true for all Polylines that have `interactive: true`.
-* `startIcon`: An instance of `L.Icon` that should be used for the draggable marker at the start point of a line (not applicable for
-  polygons). Defaults to a green marker.
-* `endIcon`: An instance of `L.Icon` that should be used for the draggable marker at the end point of the line (not applicable for
-  polygons). Defaults to a red marker.
-* `viaIcon`: An instance of `L.Icon` that should be used for draggable points on the line that are not the start point or end point.
-  Defaults to a blue marker.
-* `dragIcon`: An instance of `L.Icon` that should be used for the temporary marker that appears while you hover and drag a line.
-  Defaults to a blue marker.
-* `plusIcon`: An instance of `L.Icon` that should be used for the plus icon before the start and after the end of draggable lines.
-  Defaults to a circle with a + inside. Has no effect if `allowExtendingLine` is `false`.
+* `dragMarkerOptions`: A callback that should return the marker options for the draggable markers that are added at every line point.
+  Receives 3 arguments: the Polyline layer, the index of this marker in the list of line points (starting with 0) and the number
+  of line points. By default, returns a green marker for the first line point, a red marker for the last one and a blue marker
+  for all other line points. By default, the marker is on the marker pane behind all other markers.
+* `tempMarkerOptions`: A callback that should return the marker options for the temporary marker that appears when hovering a line.
+  Receives the Polyline layer as an argument. By default, returns a blue marker.
+* `plusMarkerOptions`: A callback that should return the marker options for the plus marker that appears at the start and end of a line
+  (unless `allowExtendingLine` is `false`). Receives 2 arguments: the Polyline layer and a boolean that is `true` if the marker is at
+  the start of the line or `false` if it is at the end. By default, renders a plus in a circle on the overlay pane behind all other
+  overlays.
+* `plusTempMarkerOptions`: A callback that should return the marker options for the temporary marker that appears when hovering the plus
+  plus markers. Receives 2 arguments: the Polyline layer and a boolean that is `true` if the marker is at the start of the line or
+  `false` if it is at the end. By default, renders a green marker at the start of the line and a red marker at the end, on the marker
+  pane behind all other markers.
 * `allowExtendingLine`: If `true` (default), users are allowed to drag the line in a way that adds additional points before the first
   point and after the last point. This will add draggable plus icons before the start and after the end of each line. Has no effect
   on Polygons.

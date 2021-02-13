@@ -1,9 +1,9 @@
-import { DomEvent, Draggable, GeometryUtil, Icon, latLng, LatLng, LatLngExpression, LeafletMouseEvent, Map, Polygon, Polyline, Util } from "leaflet";
+import { DivIcon, DomEvent, Draggable, GeometryUtil, Icon, latLng, LatLng, LatLngExpression, LeafletMouseEvent, Map, MarkerOptions, Polygon, Polyline, Util } from "leaflet";
 import DraggableLinesHandler from "../handler";
 import { getInsertPosition, getRouteInsertPosition, setPoint } from "../utils";
 import DraggableLinesMarker from "./marker";
 
-function createIcon(layer: Polyline, baseIcon: Icon) {
+function createIcon(layer: Polyline, baseIcon: Icon | DivIcon) {
     const icon = Util.create(baseIcon);
     const _setIconStyles = icon._setIconStyles;
     icon._setIconStyles = (img: HTMLImageElement, name: string) => {
@@ -21,11 +21,12 @@ function createIcon(layer: Polyline, baseIcon: Icon) {
 
 export default class DraggableLinesTempMarker extends DraggableLinesMarker {
 
-    constructor(draggable: DraggableLinesHandler, layer: Polyline, latlng: LatLngExpression, icon?: Icon) {
+    constructor(draggable: DraggableLinesHandler, layer: Polyline, latlng: LatLngExpression, options: MarkerOptions) {
         super(draggable, layer, latlng, true, {
-            icon: createIcon(layer, icon ?? draggable.options.dragIcon!),
             draggable: true,
-            zIndexOffset: -100000
+            zIndexOffset: -100000,
+            ...options,
+            icon: createIcon(layer, options.icon!)
         });
     }
 

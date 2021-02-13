@@ -1,28 +1,23 @@
-import { DomUtil, Icon, LatLng, LatLngExpression, LeafletMouseEvent, Map, Point, Polyline } from "leaflet";
-import DraggableLinesHandler, { DraggableLinesHandlerOptions } from "../handler";
-import { setPoint } from "../utils";
+import { DomUtil, LatLng, LatLngExpression, LeafletMouseEvent, Map, MarkerOptions, Polyline } from "leaflet";
+import DraggableLinesHandler from "../handler";
 import DraggableLinesMarker from "./marker";
 import DraggableLinesTempMarker from "./tempMarker";
-
-function isStart(idx: number | [number, number]): boolean {
-    return (Array.isArray(idx) ? idx[1] : idx) == 0;
-}
 
 export default class DraggableLinesPlusMarker extends DraggableLinesMarker {
 
     _idx: number | [number, number];
-    _dragIcon: Icon;
     _tempMarker?: DraggableLinesPlusTempMarker;
+    _tempMarkerOptions: MarkerOptions;
 
-    constructor(draggable: DraggableLinesHandler, layer: Polyline, latlng: LatLngExpression, idx: number | [number, number]) {
+    constructor(draggable: DraggableLinesHandler, layer: Polyline, latlng: LatLngExpression, idx: number | [number, number], options: MarkerOptions, tempMarkerOptions: MarkerOptions) {
         super(draggable, layer, latlng, true, {
-            icon: draggable.options.plusIcon,
             pane: "overlayPane",
-            zIndexOffset: -200000
+            zIndexOffset: -200000,
+            ...options
         });
 
         this._idx = idx;
-        this._dragIcon = isStart(idx) ? draggable.options.startIcon! : draggable.options.endIcon!;
+        this._tempMarkerOptions = tempMarkerOptions;
     }
 
     onAdd(map: Map) {
@@ -51,7 +46,7 @@ export default class DraggableLinesPlusMarker extends DraggableLinesMarker {
     handleMouseOver(e: LeafletMouseEvent) {
         this._draggable.removeTempMarker();
 
-        this._tempMarker = new DraggableLinesPlusTempMarker(this._draggable, this._layer, this, e.latlng, this.getIdx(), this._dragIcon).addTo(this._map)
+        this._tempMarker = new DraggableLinesPlusTempMarker(this._draggable, this._layer, this, e.latlng, this.getIdx(), this._tempMarkerOptions).addTo(this._map)
         this._draggable._tempMarker = this._tempMarker;
     }
 
@@ -62,8 +57,8 @@ class DraggableLinesPlusTempMarker extends DraggableLinesTempMarker {
     _plusMarker: DraggableLinesPlusMarker;
     _idx: number | [number, number];
 
-    constructor(draggable: DraggableLinesHandler, layer: Polyline, plusMarker: DraggableLinesPlusMarker, latlng: LatLngExpression, idx: number | [number, number], icon: Icon) {
-        super(draggable, layer, latlng, icon);
+    constructor(draggable: DraggableLinesHandler, layer: Polyline, plusMarker: DraggableLinesPlusMarker, latlng: LatLngExpression, idx: number | [number, number], options: MarkerOptions) {
+        super(draggable, layer, latlng, options);
 
         this._plusMarker = plusMarker;
         this._idx = idx;
