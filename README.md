@@ -216,6 +216,9 @@ These methods can be called on instances of `L.DraggableLines`.
 
 * `enableForLayer(layer)`: Manually enable dragging for a specific layer.
 * `disableForLayer(layer)`: Manually disable dragging for a specific layer.
+* `redraw()`: Reapply the options and redraw the drag markers for all lines. Call this after making any changes to the `options`
+  property to apply the changes.
+* `redrawForLayer(layer)`: Redraw the drag markers for a specific line.
 
 
 ### Polyline extensions

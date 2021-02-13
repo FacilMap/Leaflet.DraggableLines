@@ -120,10 +120,10 @@ export default class DraggableLinesHandler extends Handler {
     }
 
     drawPlusMarkers(layer: Polyline) {
+        this.removePlusMarkers(layer);
+
         if (layer instanceof Polygon || !layer._draggableLines || !this.options.allowExtendingLine)
             return;
-
-        this.removePlusMarkers(layer);
 
         const latlngs = layer.getLatLngs() as LatLng[] | LatLng[][];
         const trackPoints = LineUtil.isFlat(latlngs) ? [latlngs] : latlngs;
@@ -193,6 +193,17 @@ export default class DraggableLinesHandler extends Handler {
         this.drawPlusMarkers(layer);
     }
 
+    redrawForLayer(layer: Polyline) {
+        if (!layer._draggableLines)
+            return;
+
+        this.drawDragMarkers(layer);
+        this.drawPlusMarkers(layer);
+
+        if (this._tempMarker && this._tempMarker._layer === layer)
+            this.drawTempMarker(layer, this._tempMarker.getLatLng());
+    }
+
     disableForLayer(layer: Polyline) {
         layer.off("mouseover", this.handleLayerMouseOver);
         layer.off("draggableLines-setLatLngs", this.handleLayerSetLatLngs);
@@ -202,6 +213,21 @@ export default class DraggableLinesHandler extends Handler {
         this.removeDragMarkers(layer);
         this.removePlusMarkers(layer);
         delete layer._draggableLines;
+    }
+
+    redraw() {
+        this._map.eachLayer((layer) => {
+            if (!(layer instanceof Polyline))
+                return;
+
+            const enable = typeof this.options.enableForLayer === "function" ? this.options.enableForLayer(layer) : this.options.enableForLayer;
+            if (layer._draggableLines && !enable)
+                this.disableForLayer(layer);
+            else if (!layer._draggableLines && enable)
+                this.enableForLayer(layer);
+            else if (layer._draggableLines)
+                this.redrawForLayer(layer);
+        });
     }
 
 }
