@@ -27,18 +27,6 @@ export default class DraggableLinesHandler extends Handler {
 
         this.options = {
             enableForLayer: (layer) => layer.options.interactive!,
-            dragMarkerOptions: (layer, i, length) => ({
-                icon: layer instanceof Polygon ? defaultIcon : (i == 0 ? startIcon : i == length - 1 ? endIcon : defaultIcon)
-            }),
-            tempMarkerOptions: () => ({
-                icon: defaultIcon
-            }),
-            plusMarkerOptions: () => ({
-                icon: plusIcon
-            }),
-            plusTempMarkerOptions: (layer, isStart) => ({
-                icon: isStart ? startIcon : endIcon
-            }),
             allowExtendingLine: true,
             removeOnClick: true,
             ...options
@@ -102,7 +90,10 @@ export default class DraggableLinesHandler extends Handler {
                 const idx = isFlat ? j : [i, j] as [number, number];
 
                 let removeOnClick = this.options.removeOnClick!;
-                const options = this.options.dragMarkerOptions!(layer, j, routePoints[i].length);
+                const options = {
+                    icon: layer instanceof Polygon ? defaultIcon : (j == 0 ? startIcon : j == routePoints[i].length - 1 ? endIcon : defaultIcon),
+                    ...this.options.dragMarkerOptions?.(layer, j, routePoints[i].length)
+                };
                 const marker = new DraggableLinesDragMarker(this, layer, routePoints[i][j], idx, options, removeOnClick).addTo(this._map);
                 layer._draggableLines.dragMarkers.push(marker);
 
@@ -149,8 +140,14 @@ export default class DraggableLinesHandler extends Handler {
                 else
                     idx = isStart ? [i, 0] : [i, trackPoints[i].length];
                 
-                const options = this.options.plusMarkerOptions!(layer, isStart);
-                const tempMarkerOptions = this.options.plusTempMarkerOptions!(layer, isStart);
+                const options = {
+                    icon: plusIcon,
+                    ...this.options.plusMarkerOptions?.(layer, isStart)
+                };
+                const tempMarkerOptions = {
+                    icon: isStart ? startIcon : endIcon,
+                    ...this.options.plusTempMarkerOptions?.(layer, isStart)
+                };
                 const marker = new DraggableLinesPlusMarker(this, layer, getPlusIconPoint(this._map, trackPoints[i], 24 + layer.options.weight! / 2, isStart), idx, options, tempMarkerOptions).addTo(this._map);
                 layer._draggableLines.plusMarkers.push(marker);
             }
@@ -170,7 +167,10 @@ export default class DraggableLinesHandler extends Handler {
     drawTempMarker(layer: Polyline, latlng: LatLng) {
         this.removeTempMarker();
 
-        const options = this.options.tempMarkerOptions!(layer);
+        const options = {
+            icon: defaultIcon,
+            ...this.options.tempMarkerOptions?.(layer)
+        };
         this._tempMarker = new DraggableLinesTempMarker(this, layer, GeometryUtil.closest(this._map, layer, latlng)!, options).addTo(this._map);
     }
 
