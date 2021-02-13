@@ -161,9 +161,20 @@ export function getPlusIconPoint(map: Map, trackPoints: LatLng[], distance: numb
     const tr = atStart ? trackPoints : [...trackPoints].reverse();
 
     const point0 = map.latLngToContainerPoint(tr[0]);
-    const point1 = map.latLngToContainerPoint(tr[1]);
+    const tr1 = tr.find((p, i) => i > 0 && point0.distanceTo(map.latLngToContainerPoint(p)) > 0);
 
-    const fraction = distance / point0.distanceTo(point1);
-    const result = L.point(point0.x - fraction * (point1.x - point0.x), point0.y - fraction * (point1.y - point0.y));
+    let result;
+    if (!tr1) {
+        result = L.point(point0.x + (atStart ? -1 : 1) * distance, point0.y);
+    } else {
+        const point1 = map.latLngToContainerPoint(tr1);
+
+        const fraction = distance / point0.distanceTo(point1);
+
+        console.log(point0, point1, point0.distanceTo(point1));
+
+        result = L.point(point0.x - fraction * (point1.x - point0.x), point0.y - fraction * (point1.y - point0.y));
+    }
+
     return map.containerPointToLatLng(result);
 }
