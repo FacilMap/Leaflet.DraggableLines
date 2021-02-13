@@ -123,7 +123,7 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
 
 
     handleMapMouseOver(e: Event) {
-        if (e.target !== this.getElement() && e.target !== this._layer.getElement())
+        if (!Draggable._dragging && e.target !== this.getElement() && e.target !== this._layer.getElement())
             this.remove();
     };
 
