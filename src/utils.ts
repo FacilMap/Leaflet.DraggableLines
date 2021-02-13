@@ -171,8 +171,6 @@ export function getPlusIconPoint(map: Map, trackPoints: LatLng[], distance: numb
 
         const fraction = distance / point0.distanceTo(point1);
 
-        console.log(point0, point1, point0.distanceTo(point1));
-
         result = L.point(point0.x - fraction * (point1.x - point0.x), point0.y - fraction * (point1.y - point0.y));
     }
 
