@@ -110,18 +110,19 @@ L.Polyline([[53.09897, 12.02728], [52.01701, 14.18884]], { enableDraggableLines:
 L.Polyline([[52.93871, 11.92566], [52.73629, 12.57935]], { enableDraggableLines: false }).addTo(map);
 
 new L.DraggableLines(map, {
-	enableForLayer: (layer) => (layer.options.enableDraggableLines)
+	enableForLayer: (layer) => layer.options.enableDraggableLines
 }).enable();
 ```
 
 An alternative way is to manually enable dragging for specific layers using the `enableForLayer` method. To disable automatic enabling
-for all layers, pass a function that always returns `false` as `enableForLayer`:
+for all layers, pass a function that always returns `false` as `enableForLayer`. As a short-hand, `enableForLayer` also supports passing
+a boolean directly:
 ```javascript
 const layer1 = L.Polyline([[53.09897, 12.02728], [52.01701, 14.18884]]).addTo(map);
 const layer2 = L.Polyline([[52.93871, 11.92566], [52.73629, 12.57935]]).addTo(map);
 
 const draggable = new L.DraggableLines(map, {
-	enableForLayer: () => false
+	enableForLayer: false
 });
 draggable.enable();
 draggable.enableForLayer(layer1);
@@ -134,7 +135,8 @@ You can pass the following options as the second parameter to `L.DraggableLines`
 
 * `enableForLayer`: A callback that receives a layer as its parameter and needs to return a boolean that decides whether dragging
   should be enabled for this layer. This is called for all existing Polyline layers when `enable()` is called on the `L.DraggableLines`
-  object, and for any Polyline that is added to the map while it is enabled.
+  object, and for any Polyline that is added to the map while it is enabled. Instead of a callback, a boolean can be specified
+  to apply it to all layers (for example, passing `false` will disable automatic enabling for any layers).
   By default this returns true for all Polylines that have `interactive: true`.
 * `startIcon`: An instance of `L.Icon` that should be used for the draggable marker at the start point of a line (not applicable for
   polygons). Defaults to a green marker.

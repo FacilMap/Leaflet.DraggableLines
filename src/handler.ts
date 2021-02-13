@@ -7,7 +7,7 @@ import DraggableLinesTempMarker from './markers/tempMarker';
 import { getPlusIconPoint } from './utils';
 
 export interface DraggableLinesHandlerOptions {
-    enableForLayer?: (layer: Polyline) => boolean;
+    enableForLayer?: boolean | ((layer: Polyline) => boolean);
     viaIcon?: Icon;
     startIcon?: Icon;
     endIcon?: Icon;
@@ -54,7 +54,7 @@ export default class DraggableLinesHandler extends Handler {
     }
 
     handleLayerAdd = (e: { layer: Layer }) => {
-        if (e.layer instanceof Polyline && this.options.enableForLayer!(e.layer))
+        if (e.layer instanceof Polyline && (typeof this.options.enableForLayer === "function" ? this.options.enableForLayer!(e.layer) : this.options.enableForLayer))
             this.enableForLayer(e.layer as Polyline);
     };
 
