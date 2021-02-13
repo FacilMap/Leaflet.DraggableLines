@@ -210,6 +210,17 @@ Carries an object with the following properties:
 * `latlng`: An instance of `L.LatLng` with the coordinates of the new point.
 
 
+#### `dragmouseover`, `dragmouseout`
+
+Fired when the user hovers or unhovers one of the draggable markers that is rendered on every line point.
+
+Carries an object with the following properties:
+* `layer`: The Polyline which the drag marker belongs to
+* `marker`: The marker, an instance of `L.DraggableLines.DragMarker`
+* `idx`: The index to which point the marker belongs. A number for simple Polylines, a tuple of two numbers for a MultiPolyline
+  or a Polygon.
+
+
 ### Methods
 
 These methods can be called on instances of `L.DraggableLines`.
