@@ -1,4 +1,3 @@
-import L from 'leaflet';
 import DraggableLinesHandler from './handler';
 import './injections';
 import * as utils from './utils';
@@ -12,21 +11,9 @@ export * from './utils';
 export * from './markers/icons';
 export { DraggableLinesMarker, DraggableLinesDragMarker, DraggableLinesTempMarker, DraggableLinesPlusMarker };
 
-type DraggableLinesType = typeof DraggableLinesHandler;
+export default DraggableLinesHandler;
 
-declare module "leaflet" {
-    let DraggableLines: DraggableLinesType
-        & typeof utils
-        & {
-            icons: typeof icons;
-            Marker: typeof DraggableLinesMarker;
-            DragMarker: typeof DraggableLinesDragMarker;
-            TempMarker: typeof DraggableLinesTempMarker;
-            PlusMarker: typeof DraggableLinesPlusMarker;
-        };
-}
-
-L.DraggableLines = Object.assign(DraggableLinesHandler, {
+export const DraggableLines = Object.assign(DraggableLinesHandler, {
     ...utils,
     icons,
     Marker: DraggableLinesMarker,
@@ -34,5 +21,3 @@ L.DraggableLines = Object.assign(DraggableLinesHandler, {
     TempMarker: DraggableLinesTempMarker,
     PlusMarker: DraggableLinesPlusMarker
 });
-
-export default DraggableLinesHandler;

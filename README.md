@@ -25,19 +25,16 @@ drag thin lines.
 Usage
 -----
 
-Leaflet.DraggableLines depends on [Leaflet.GeometryUtil](https://github.com/makinacorpus/Leaflet.GeometryUtil). Make sure to load
-the Leaflet and Leaflet.GeometryUtil scripts before loading Leaflet.DraggableLines.
+If you are using a module bundler, you can install Leaflet.HighlightableLayers using `npm install -S leaflet-highlightable-layers` and use it in your code using `import DraggableLines from 'leaflet-draggable-lines'`. TypeScript is supported. Note that when using Leaflet.DraggableLines like this, `L.DraggableLines` is not available on the global `L` leaflet object.
 
-To use Leaflet.DraggableLines, load the [L.DraggableLines.js](./dist/L.DraggableLines.js) script. One easy way to do it is to use
-[UNPKG](https://unpkg.com/).
+If you want to use Leaflet.DraggableLines in a static HTML page, it is available as `L.DraggableLines`. It depends on [Leaflet.GeometryUtil](https://github.com/makinacorpus/Leaflet.GeometryUtil). Make sure to load the Leaflet and Leaflet.GeometryUtil scripts before loading Leaflet.DraggableLines. To use Leaflet.DraggableLines, load the [L.DraggableLines.js](./dist/L.DraggableLines.js) script. One easy way to do it is to use
+[UNPKG](https://unpkg.com/):
 ```
 <script src="https://unpkg.com/leaflet"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet-geometryutil"></script>
 <script src="https://unpkg.com/leaflet-draggablelines"></script>
 ```
-
-If you are using npm, run `npm install -S leaflet-draggablelines` to install it. You can then either `import 'leaflet-draggablelines'` and access it through `L.DraggableLines`, or `import DraggableLines from 'leaflet-draggablelines'` directly. TypeScript is also supported.
 
 
 ### Simple usage for lines and polygons
