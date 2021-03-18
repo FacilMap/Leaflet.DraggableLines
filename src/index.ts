@@ -5,7 +5,7 @@ import * as icons from './markers/icons';
 import DraggableLinesMarker from './markers/marker';
 import DraggableLinesDragMarker from './markers/dragMarker';
 import DraggableLinesTempMarker from './markers/tempMarker';
-import DraggableLinesPlusMarker from './markers/plusMarker';
+import DraggableLinesPlusMarker, { DraggableLinesPlusTempMarker } from './markers/plusMarker';
 
 export * from './utils';
 export * from './markers/icons';
@@ -19,5 +19,6 @@ export const DraggableLines = Object.assign(DraggableLinesHandler, {
     Marker: DraggableLinesMarker,
     DragMarker: DraggableLinesDragMarker,
     TempMarker: DraggableLinesTempMarker,
-    PlusMarker: DraggableLinesPlusMarker
+    PlusMarker: DraggableLinesPlusMarker,
+    PlusTempMarker: DraggableLinesPlusTempMarker
 });

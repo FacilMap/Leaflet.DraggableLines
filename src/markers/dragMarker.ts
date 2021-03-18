@@ -28,6 +28,13 @@ export default class DraggableLinesDragMarker extends DraggableLinesMarker {
             this.on('click', this.handleClick);
         }
 
+        this.on("mouseover", () => {
+            this._draggable.fire("dragmouseover", { layer: this._layer, idx: this._idx, marker: this });
+        });
+        this.on("mouseout", () => {
+            this._draggable.fire("dragmouseout", { layer: this._layer, idx: this._idx, marker: this });
+        });
+
         return this;
     }
 

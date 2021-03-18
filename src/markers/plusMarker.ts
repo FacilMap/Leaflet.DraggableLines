@@ -52,7 +52,7 @@ export default class DraggableLinesPlusMarker extends DraggableLinesMarker {
 
 }
 
-class DraggableLinesPlusTempMarker extends DraggableLinesTempMarker {
+export class DraggableLinesPlusTempMarker extends DraggableLinesTempMarker {
     
     _plusMarker: DraggableLinesPlusMarker;
     _idx: number | [number, number];
@@ -77,6 +77,18 @@ class DraggableLinesPlusTempMarker extends DraggableLinesTempMarker {
 
     getRenderPoint() {
         return this.getLatLng();
+    }
+
+    fireMouseOver() {
+        this._draggable.fire("plusmouseover", { layer: this._layer, idx: this.getIdx(), marker: this, plusMarker: this._plusMarker });
+    }
+
+
+    fireMouseMove() {
+    }
+
+    fireMouseOut() {
+        this._draggable.fire("plusmouseout", { layer: this._layer, idx: this.getIdx(), marker: this, plusMarker: this._plusMarker });
     }
 
 }

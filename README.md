@@ -225,6 +225,33 @@ Carries an object with the following properties:
   or a Polygon.
 
 
+#### `tempmouseover`, `tempmousemove`, `tempmouseout`
+
+Fired as the user hovers or unhovers the line and a temporary drag marker is shown/hidden.
+
+Carries an object with the following properties:
+* `layer`: The Polyline which is hovered
+* `marker`: The temporary marker, an instance of `L.DraggableLines.TempMarker`
+* `idx`: The index where a route point would be inserted if the user started dragging from here. A number for simple Polylines,
+  a tuple of two numbers for a MultiPolyline or a Polygon. Note that this can change as the user hovers across the line. The
+  `tempmouseout` event may have a different `idx` than its preceding `tempmouseover` event.
+* `latlng`: The position where the temporary marker is currently rendered. This is an exact position on the line.
+
+
+#### `plusmouseover`, `plusmouseout`
+
+Fired as the user hovers or unhovers the plus icons at the beginning and end of a line.
+
+Carries an object with the following properties:
+* `layer`: The Polyline to which the plus icons belong
+* `marker`: The temporary marker which is rendered on top of the plus icon, an instance of `L.DraggableLines.PlusTempMarker`
+  (which is a sub-class of `L.DraggableLines.TempMarker`)
+* `plusMarker`: The marker that contains the plus icon, an instance of `L.DraggableLines.PlusMarker`.
+* `idx`: The index where a route point would be inserted if the user started dragging from here. A number for simple Polylines,
+  a tuple of two numbers for a MultiPolyline. Because plus icons are only rendered at the very beginning and end of each line,
+  the index is either 0 or equal to the length of route points.
+
+
 ### Methods
 
 These methods can be called on instances of `L.DraggableLines`.

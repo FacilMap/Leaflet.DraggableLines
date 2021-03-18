@@ -55,6 +55,10 @@
 					calculateRoute();
 				}
 			});
+
+			draggable.on("dragstart drag dragend remove insert dragmouseover dragmouseout tempmouseover tempmousemove tempmouseout plusmouseover plusmouseout", (e) => {
+				console.log(e.type, e.idx, e);
+			});
 		</script>
 	</body>
 </html>

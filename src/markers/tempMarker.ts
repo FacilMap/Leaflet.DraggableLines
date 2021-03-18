@@ -37,10 +37,15 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
         DomEvent.on(map.getContainer(), "mouseover", this.handleMapMouseOver, this); // Bind manually since map.on("mouseover") does not receive bubbling events
         this.on('click', this.handleClick, this);
 
+        this.fireMouseOver();
+
         return this;
     }
 
     onRemove(map: Map) {
+        if (!this.isHidden())
+            this.fireMouseOut();
+
         super.onRemove(map);
 
         map.off("mousemove", this.handleMapMouseMove, this);
@@ -53,12 +58,16 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
         this._icon.style.display = '';
         if (this._shadow)
             this._shadow.style.display = '';
+
+        this.fireMouseOver();
     }
 
     hide() {
         this._icon.style.display = 'none';
         if (this._shadow)
             this._shadow.style.display = 'none';
+
+        this.fireMouseOut();
     }
 
     isHidden() {
@@ -120,6 +129,8 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
             this.show();
         else if (!latlng && isVisible)
             this.hide();
+        else if (isVisible)
+            this.fireMouseMove();
     };
 
 
@@ -127,5 +138,19 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
         if (!Draggable._dragging && e.target !== this.getElement() && e.target !== this._layer.getElement())
             this.remove();
     };
+
+
+    fireMouseOver() {
+        this._draggable.fire("tempmouseover", { layer: this._layer, idx: this.getIdx(), marker: this, latlng: this.getLatLng() });
+    }
+
+
+    fireMouseMove() {
+        this._draggable.fire("tempmousemove", { layer: this._layer, idx: this.getIdx(), marker: this, latlng: this.getLatLng() });
+    }
+
+    fireMouseOut() {
+        this._draggable.fire("tempmouseout", { layer: this._layer, idx: this.getIdx(), marker: this, latlng: this.getLatLng() });
+    }
 
 }

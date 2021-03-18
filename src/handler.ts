@@ -107,13 +107,6 @@ export default class DraggableLinesHandler extends Handler {
                 };
                 const marker = new DraggableLinesDragMarker(this, layer, routePoints[i][j], idx, options, removeOnClick).addTo(this._map);
                 layer._draggableLines.dragMarkers.push(marker);
-
-                marker.on("mouseover", () => {
-                    this.fire("dragmouseover", { layer, idx, marker });
-                });
-                marker.on("mouseout", () => {
-                    this.fire("dragmouseout", { layer, idx, marker });
-                });
             }
         }
     }
