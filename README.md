@@ -130,11 +130,18 @@ draggable.enableForLayer(layer1);
 
 You can pass the following options as the second parameter to `L.DraggableLines`:
 
-* `enableForLayer`: A callback that receives a layer as its parameter and needs to return a boolean that decides whether dragging
-  should be enabled for this layer. This is called for all existing Polyline layers when `enable()` is called on the `L.DraggableLines`
-  object, and for any Polyline that is added to the map while it is enabled. Instead of a callback, a boolean can be specified
-  to apply it to all layers (for example, passing `false` will disable automatic enabling for any layers).
-  By default this returns true for all Polylines that have `interactive: true`.
+* `enableForLayer`: Configures for which layers dragging should be enabled automatically. When `L.DraggableLines` is enabled by
+  calling `enable()`, all Polylines on the map are checked against this. If a Polyline is added to the map later, is is also
+  checked against this value.
+
+  Supports different types:
+
+  * A callback that receives a Polyline layer as its parameter and returns a boolean
+  * An array of Polylines
+  * A single Polyline
+  * A boolean to enable/disable it for all layers.
+
+  By default this is a callback that returns true for all Polylines that have `interactive: true`.
 * `dragMarkerOptions`: A callback that should return the marker options for the draggable markers that are added at every line point.
   Receives 3 arguments: the Polyline layer, the index of this marker in the list of line points (starting with 0) and the number
   of line points. By default, returns a green marker for the first line point, a red marker for the last one and a blue marker

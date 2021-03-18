@@ -7,7 +7,7 @@ import DraggableLinesTempMarker from './markers/tempMarker';
 import { getPlusIconPoint } from './utils';
 
 export interface DraggableLinesHandlerOptions {
-    enableForLayer?: boolean | ((layer: Polyline) => boolean);
+    enableForLayer?: boolean | Polyline | Polyline[] | ((layer: Polyline) => boolean);
     dragMarkerOptions?: (layer: Polyline, i: number, length: number) => MarkerOptions;
     tempMarkerOptions?: (layer: Polyline) => MarkerOptions;
     plusMarkerOptions?: (layer: Polyline, isStart: boolean) => MarkerOptions;
@@ -47,8 +47,19 @@ export default class DraggableLinesHandler extends Handler {
         this._map.eachLayer((layer) => { this.handleLayerRemove({ layer }); });
     }
 
+    shouldEnableForLayer(layer: Polyline) {
+        if (typeof this.options.enableForLayer === "function")
+            return this.options.enableForLayer(layer);
+        else if (typeof this.options.enableForLayer === "boolean")
+            return this.options.enableForLayer;
+        else if (Array.isArray(this.options.enableForLayer))
+            return this.options.enableForLayer.includes(layer);
+        else
+            return this.options.enableForLayer === layer;
+    }
+
     handleLayerAdd = (e: { layer: Layer }) => {
-        if (e.layer instanceof Polyline && (typeof this.options.enableForLayer === "function" ? this.options.enableForLayer!(e.layer) : this.options.enableForLayer))
+        if (e.layer instanceof Polyline && this.shouldEnableForLayer(e.layer))
             this.enableForLayer(e.layer as Polyline);
     };
 
@@ -227,7 +238,7 @@ export default class DraggableLinesHandler extends Handler {
             if (!(layer instanceof Polyline))
                 return;
 
-            const enable = typeof this.options.enableForLayer === "function" ? this.options.enableForLayer(layer) : this.options.enableForLayer;
+            const enable = this.shouldEnableForLayer(layer);
             if (layer._draggableLines && !enable)
                 this.disableForLayer(layer);
             else if (!layer._draggableLines && enable)
