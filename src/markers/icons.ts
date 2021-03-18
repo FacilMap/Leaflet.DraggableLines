@@ -1,14 +1,14 @@
 import { Icon } from 'leaflet';
-import defaultIconDataUrl from './marker.svg';
-import plusIconDataUrl from './plus.svg';
+import defaultIconDataUrl from './assets/marker.svg';
+import plusIconDataUrl from './assets/plus.svg';
+import markerShadowUrl from './assets/marker-shadow.png';
 
-const imagePath = (Icon.Default.prototype as any)._detectIconPath();
 function createIcon(colors: Record<string, string>) {
     let url = defaultIconDataUrl;
     for (const key of Object.keys(colors)) {
         url = url.replace(new RegExp(`%24%7b${key}%7d`, 'g'), encodeURIComponent(colors[key]))
     }
-    return new Icon.Default({ imagePath: new String('') as string, iconUrl: url, iconRetinaUrl: url, shadowUrl: `${imagePath}marker-shadow.png` }) as Icon;
+    return new Icon.Default({ imagePath: new String('') as string, iconUrl: url, iconRetinaUrl: url, shadowUrl: markerShadowUrl }) as Icon;
 }
 
 export const defaultIcon = createIcon({ color1: "#2e6c97", color2: "#3883b7", color3: "#126fc6", color4: "#4c9cd1" });

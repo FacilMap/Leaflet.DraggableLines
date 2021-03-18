@@ -33,13 +33,15 @@ module.exports = (env: any, argv: any): Configuration => {
 				},
 				{
 					test: /\.svg$/i,
-					use: [{
-						loader: 'url-loader',
-						options: {
-							generator: (content: any) => svgToMiniDataURI(content.toString())
-						}
-					}]
-				  }
+					type: 'asset/inline',
+					generator: {
+						dataUrl: (content: any) => svgToMiniDataURI(content.toString())
+					}
+				},
+				{
+					test: /\.png$/i,
+					type: 'asset/inline'
+				}
 			]
 		},
 		externals : {

@@ -13,6 +13,7 @@ function createIcon(layer: Polyline, baseIcon: Icon | DivIcon) {
         // event while hovering around on the line.
         const padding = layer.options.weight! * 2;
         img.style.padding = `${padding}px`;
+        img.style.boxSizing = "content-box";
         img.style.marginLeft = `${parseInt(img.style.marginLeft) - padding}px`;
         img.style.marginTop = `${parseInt(img.style.marginTop) - padding}px`;
     };
