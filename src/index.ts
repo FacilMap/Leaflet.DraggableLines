@@ -9,6 +9,8 @@ import DraggableLinesPlusMarker, { DraggableLinesPlusTempMarker } from './marker
 
 export * from './utils';
 export * from './markers/icons';
+export * from './markers/plusMarker';
+export * from './handler';
 export { DraggableLinesMarker, DraggableLinesDragMarker, DraggableLinesTempMarker, DraggableLinesPlusMarker };
 
 export default DraggableLinesHandler;
