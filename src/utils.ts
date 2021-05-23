@@ -40,7 +40,7 @@ export function getInsertPosition(map: Map, points: LatLng[] | LatLng[][], point
     const polyline = L.polyline(isPolygon ? [...points, points[0]] : points);
     const pos = GeometryUtil.locateOnLine(map, polyline, point);
     const before = L.GeometryUtil.extract(map, polyline, 0, pos);
-    
+
     let idx = before.length - 1;
     if (!isPolygon)
         idx = Math.max(1, Math.min(points.length - 1, idx));
@@ -62,11 +62,11 @@ export function getRouteInsertPosition(map: Map, routePoints: LatLng[], trackPoi
     const polyline = L.polyline(trackPoints);
     const pos = GeometryUtil.locateOnLine(map, polyline, point);
 
-    for (let i = 0; i < routePoints.length; i++) {
+    for (let i = 1; i < routePoints.length; i++) {
         if (GeometryUtil.locateOnLine(map, polyline, routePoints[i]) > pos)
             return i;
     }
-    return routePoints.length;
+    return routePoints.length - 1;
 }
 
 export function getFromPosition<T, A extends T[] | T[][]>(arr: A, idx: PolylineIndex): T {
@@ -95,7 +95,7 @@ export function insertAtPosition<T, A extends T[] | T[][]>(arr: A, item: T, idx:
 
 /**
  * Like `L.DraggableLines.insertAtPosition`, but overwrites the item at the given index instead of inserting it there.
- * 
+ *
  * Returns a copy of the `arr` array with the item at index `idx` overwritten with `item`. `arr` can be an array or an array
  * of arrays (as returned by `getLatLngs()` on a Polyline/Polygon), and `idx` can be a number or a tuple of two numbers as
  * returned by `L.DraggableLines.getInsertPosition()` (and as passed along with the drag events). This method can be used
@@ -131,14 +131,14 @@ export function removeFromPosition<A extends any[] | any[][]>(arr: A, idx: numbe
 
 export function setPoint(layer: Polyline, point: LatLng, idx: number | [number, number], insert: boolean) {
     const hasRoutePoints = layer.hasDraggableLinesRoutePoints();
-    
+
     let points = hasRoutePoints ? layer.getDraggableLinesRoutePoints()! : layer.getLatLngs() as LatLng[] | LatLng[][];
-    
+
     if (insert)
         points = insertAtPosition(points, point, idx);
     else
         points = updateAtPosition(points, point, idx);
-    
+
     if (hasRoutePoints)
         layer.setDraggableLinesRoutePoints(points as any);
     else
@@ -147,7 +147,7 @@ export function setPoint(layer: Polyline, point: LatLng, idx: number | [number, 
 
 export function removePoint(layer: Polyline, idx: number | [number, number]) {
     const hasRoutePoints = layer.hasDraggableLinesRoutePoints();
-    
+
     let points = hasRoutePoints ? layer.getDraggableLinesRoutePoints()! : layer.getLatLngs() as LatLng[] | LatLng[][];
     points = removeFromPosition(points, idx);
 
