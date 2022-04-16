@@ -47,5 +47,6 @@
   },
   "dependencies": {
     "leaflet-geometryutil": "^0.10.0"
-  }
+  },
+  "packageManager": "yarn@3.2.0"
 }
