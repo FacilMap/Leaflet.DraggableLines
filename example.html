@@ -4,7 +4,6 @@
 		<meta charset="utf-8">
 		<title>L.HighlightableLayers Example</title>
 		<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
 		<style type="text/css">
 			html, body { width: 100%; height: 100%; margin: 0; }
 			#map { width: 100%; height: 100%; }
@@ -13,12 +12,13 @@
 
 	<body>
 		<div id="map"></div>
-		<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-		<script src="https://unpkg.com/leaflet-geometryutil@0.9.3/src/leaflet.geometryutil.js"></script>
-		<script src="https://unpkg.com/leaflet-highlightable-layers@1.0"></script>
-		<script type="text/javascript" src="dist/L.DraggableLines.js"></script>
 
-		<script type="text/javascript">
+		<script type="module">
+			import L from 'leaflet';
+			import 'leaflet/dist/leaflet.css';
+			import { HighlightablePolygon, HighlightablePolyline } from 'leaflet-highlightable-layers';
+			import DraggableLines from './src/index.ts';
+
 		    var map = L.map('map',{
 				center: [52.4830, 13.3414],
 				zoom: 9
@@ -28,23 +28,23 @@
 				noWrap: true
 			}).addTo(map);
 
-			new L.HighlightableLayers.HighlightablePolyline([
+			new HighlightablePolyline([
 				[[53.09897, 12.02728], [52.01701, 14.18884]],
 				[[52.93871, 11.92566], [52.73629, 12.57935]]
 		 	], { color: '#0000ff', weight: 10 }).addTo(map);
 
-			const draggable = new L.DraggableLines(map);
+			const draggable = new DraggableLines(map);
 			draggable.enable();
 
 			setTimeout(() => {
 				new L.Polyline([[51.96119, 11.79382], [53.16653, 14.04877]], { color: '#ff0000', weight: 50 }).addTo(map);
-				new L.HighlightableLayers.HighlightablePolygon([
+				new HighlightablePolygon([
 					[[52.32359, 13.92242], [52.11157, 13.28522], [51.87649, 13.98834]],
 					[[52.13012, 13.73085], [52.09005, 13.73257], [52.11831, 13.77617]]
 				], { weight: 10 }).addTo(map);
 			}, 100);
 
-			const routeLayer = new L.HighlightableLayers.HighlightablePolyline([], { draggableLinesRoutePoints: [[52.61139, 11.86523], [52.50285, 14.13666]] }).addTo(map);
+			const routeLayer = new HighlightablePolyline([], { draggableLinesRoutePoints: [[52.61139, 11.86523], [52.50285, 14.13666]] }).addTo(map);
 			async function calculateRoute() {
 				const route = await fetch(`https://router.project-osrm.org/route/v1/driving/${routeLayer.getDraggableLinesRoutePoints().map((p) => `${p.lng},${p.lat}`).join(';')}?geometries=geojson`).then((res) => res.json());
 				routeLayer.setLatLngs(route.routes[0].geometry.coordinates.map((p) => [p[1], p[0]]));

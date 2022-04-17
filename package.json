@@ -3,7 +3,15 @@
   "version": "1.0.11",
   "description": "A Leaflet plugin to add/move/remove points on routes, lines and polygons by drag&drop.",
   "main": "./dist/L.DraggableLines.js",
+  "module": "./dist/L.DraggableLines.mjs",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/L.DraggableLines.mjs",
+      "require": "./dist/L.DraggableLines.js"
+    },
+    "./*": "./*"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/FacilMap/Leaflet.DraggableLines.git"
@@ -17,36 +25,33 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "webpack",
-    "watch": "webpack --watch --mode development",
+    "build": "FORMAT=es vite build && FORMAT=umd vite build",
     "clean": "rimraf dist",
-    "dev-server": "webpack serve --mode development"
+    "dev-server": "vite",
+    "check-types": "tsc --noEmit",
+    "test": "jest --env=jsdom"
   },
   "devDependencies": {
-    "@types/jest": "^26.0.22",
-    "@types/leaflet": "^1.7.0",
-    "@types/node": "^14.14.41",
-    "@types/webpack-dev-server": "^3.11.3",
-    "css-loader": "^5.2.4",
-    "jest": "^26.6.3",
+    "@types/jest": "^27.4.1",
+    "@types/leaflet": "^1.7.9",
+    "@types/node": "^17.0.24",
+    "jest": "^27.5.1",
     "leaflet": "^1.7.1",
-    "mini-svg-data-uri": "^1.2.3",
-    "rimraf": "^3.0.0",
-    "style-loader": "^2.0.0",
-    "ts-jest": "^26.5.5",
-    "ts-loader": "^9.1.1",
-    "ts-node": "^9.1.1",
-    "typescript": "^4.2.4",
-    "webpack": "^5.35.1",
-    "webpack-bundle-analyzer": "^4.4.1",
-    "webpack-cli": "^4.6.0",
-    "webpack-dev-server": "^3.11.2"
+    "leaflet-highlightable-layers": "^1.2.0",
+    "mini-svg-data-uri": "^1.4.4",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^27.1.4",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.3",
+    "vite": "^2.9.5",
+    "vite-plugin-css-injected-by-js": "^1.4.0",
+    "vite-plugin-dts": "^1.0.5"
   },
   "peerDependencies": {
     "leaflet": "x"
   },
   "dependencies": {
-    "leaflet-geometryutil": "^0.10.0"
+    "leaflet-geometryutil": "^0.10.1"
   },
   "packageManager": "yarn@3.2.0"
 }
