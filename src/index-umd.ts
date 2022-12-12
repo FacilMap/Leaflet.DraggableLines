@@ -8,9 +8,7 @@ import DraggableLinesTempMarker from './markers/tempMarker';
 import DraggableLinesPlusMarker, { DraggableLinesPlusTempMarker } from './markers/plusMarker';
 import './type-fixup';
 
-export default DraggableLinesHandler;
-
-Object.assign(DraggableLinesHandler, {
+export default Object.assign(DraggableLinesHandler, {
     ...utils,
     icons,
     Marker: DraggableLinesMarker,

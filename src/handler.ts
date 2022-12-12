@@ -16,8 +16,14 @@ export interface DraggableLinesHandlerOptions {
     removeOnClick?: boolean;
 }
 
-export default class DraggableLinesHandler extends Handler {
-
+export default class DraggableLinesHandler extends (() => {
+    function HandlerAndEvented(this: Handler & Evented, map: Map) {
+        Handler.call(this, map);
+    }
+    Object.setPrototypeOf(HandlerAndEvented.prototype, Handler.prototype);
+    Object.assign(HandlerAndEvented.prototype, Evented.prototype);
+    return HandlerAndEvented as any as new (map: Map) => Handler & Evented;
+})() {
     options: DraggableLinesHandlerOptions;
 
     _tempMarker?: DraggableLinesTempMarker;
@@ -242,6 +248,3 @@ export default class DraggableLinesHandler extends Handler {
     }
 
 }
-
-export default interface DraggableLinesHandler extends Evented {}
-Object.assign(DraggableLinesHandler.prototype, Evented.prototype);
