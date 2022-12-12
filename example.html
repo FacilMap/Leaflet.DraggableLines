@@ -4,6 +4,7 @@
 		<meta charset="utf-8">
 		<title>L.HighlightableLayers Example</title>
 		<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+		<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 		<style type="text/css">
 			html, body { width: 100%; height: 100%; margin: 0; }
 			#map { width: 100%; height: 100%; }
@@ -13,11 +14,21 @@
 	<body>
 		<div id="map"></div>
 
+		<script type="importmap">
+			{
+				"imports": {
+					"leaflet": "https://esm.sh/*leaflet",
+					"leaflet-geometryutil": "https://esm.sh/*leaflet-geometryutil",
+					"leaflet-highlightable-layers": "https://unpkg.com/leaflet-highlightable-layers/dist/L.HighlightableLayers.mjs",
+					"leaflet-draggable-lines": "./dist/L.DraggableLines.mjs"
+				}
+			}
+		</script>
+
 		<script type="module">
-			import L from 'leaflet';
-			import 'leaflet/dist/leaflet.css';
+			import * as L from 'leaflet';
 			import { HighlightablePolygon, HighlightablePolyline } from 'leaflet-highlightable-layers';
-			import DraggableLines from './src/index.ts';
+			import DraggableLines from 'leaflet-draggable-lines';
 
 		    var map = L.map('map',{
 				center: [52.4830, 13.3414],

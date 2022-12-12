@@ -1,4 +1,4 @@
-import L, { LatLng, LineUtil, Map, Polyline } from "leaflet";
+import * as L from "leaflet";
 import GeometryUtil from "leaflet-geometryutil";
 
 export type PolylineIndex = number | [number, number];
@@ -18,11 +18,11 @@ export type PolylineIndex = number | [number, number];
  * the coordinates of a line. The difference between a polygon and a line is that in a polygon, the first point and the last point
  * of the coordinates listed in `points` are connected by an additional segment that can also be dragged.
  */
-export function getInsertPosition(map: Map, points: LatLng[], point: LatLng, isPolygon?: boolean): number;
-export function getInsertPosition(map: Map, points: LatLng[][], point: LatLng, isPolygon?: boolean): [number, number];
-export function getInsertPosition(map: Map, points: LatLng[] | LatLng[][], point: LatLng, isPolygon?: boolean): number | [number, number];
-export function getInsertPosition(map: Map, points: LatLng[] | LatLng[][], point: LatLng, isPolygon = false): number | [number, number] {
-    if (!LineUtil.isFlat(points)) {
+export function getInsertPosition(map: L.Map, points: L.LatLng[], point: L.LatLng, isPolygon?: boolean): number;
+export function getInsertPosition(map: L.Map, points: L.LatLng[][], point: L.LatLng, isPolygon?: boolean): [number, number];
+export function getInsertPosition(map: L.Map, points: L.LatLng[] | L.LatLng[][], point: L.LatLng, isPolygon?: boolean): number | [number, number];
+export function getInsertPosition(map: L.Map, points: L.LatLng[] | L.LatLng[][], point: L.LatLng, isPolygon = false): number | [number, number] {
+    if (!L.LineUtil.isFlat(points)) {
         // In case of a multi polyline/polygon, we need to figure out first which one of the polylines/polygons the closest point is on.
         // GeometryUtil.closest() doesn't seem to tell us that, so we need to check the distance to each sub polyline/polygon manually.
         // Internally, GeometryUtil.closest() seems to do it the same way.
@@ -39,7 +39,7 @@ export function getInsertPosition(map: Map, points: LatLng[] | LatLng[][], point
 
     const polyline = L.polyline(isPolygon ? [...points, points[0]] : points);
     const pos = GeometryUtil.locateOnLine(map, polyline, point);
-    const before = L.GeometryUtil.extract(map, polyline, 0, pos);
+    const before = GeometryUtil.extract(map, polyline, 0, pos);
 
     let idx = before.length - 1;
     if (!isPolygon)
@@ -58,7 +58,7 @@ export function getInsertPosition(map: Map, points: LatLng[] | LatLng[][], point
  * @param trackPoints: An array of coordinates as returned by `layer.getLatLngs()`.
  * @param point: An instance of `L.LatLng` that represents the point on the line where dragging has started.
  */
-export function getRouteInsertPosition(map: Map, routePoints: LatLng[], trackPoints: LatLng[], point: LatLng): number {
+export function getRouteInsertPosition(map: L.Map, routePoints: L.LatLng[], trackPoints: L.LatLng[], point: L.LatLng): number {
     const polyline = L.polyline(trackPoints);
     const pos = GeometryUtil.locateOnLine(map, polyline, point);
 
@@ -129,10 +129,10 @@ export function removeFromPosition<A extends any[] | any[][]>(arr: A, idx: numbe
     }
 }
 
-export function setPoint(layer: Polyline, point: LatLng, idx: number | [number, number], insert: boolean) {
+export function setPoint(layer: L.Polyline, point: L.LatLng, idx: number | [number, number], insert: boolean) {
     const hasRoutePoints = layer.hasDraggableLinesRoutePoints();
 
-    let points = hasRoutePoints ? layer.getDraggableLinesRoutePoints()! : layer.getLatLngs() as LatLng[] | LatLng[][];
+    let points = hasRoutePoints ? layer.getDraggableLinesRoutePoints()! : layer.getLatLngs() as L.LatLng[] | L.LatLng[][];
 
     if (insert)
         points = insertAtPosition(points, point, idx);
@@ -145,10 +145,10 @@ export function setPoint(layer: Polyline, point: LatLng, idx: number | [number, 
         layer.setLatLngs(points);
 }
 
-export function removePoint(layer: Polyline, idx: number | [number, number]) {
+export function removePoint(layer: L.Polyline, idx: number | [number, number]) {
     const hasRoutePoints = layer.hasDraggableLinesRoutePoints();
 
-    let points = hasRoutePoints ? layer.getDraggableLinesRoutePoints()! : layer.getLatLngs() as LatLng[] | LatLng[][];
+    let points = hasRoutePoints ? layer.getDraggableLinesRoutePoints()! : layer.getLatLngs() as L.LatLng[] | L.LatLng[][];
     points = removeFromPosition(points, idx);
 
     if (hasRoutePoints)
@@ -157,7 +157,7 @@ export function removePoint(layer: Polyline, idx: number | [number, number]) {
         layer.setLatLngs(points);
 }
 
-export function getPlusIconPoint(map: Map, trackPoints: LatLng[], distance: number, atStart: boolean) {
+export function getPlusIconPoint(map: L.Map, trackPoints: L.LatLng[], distance: number, atStart: boolean) {
     const tr = atStart ? trackPoints : [...trackPoints].reverse();
 
     const point0 = map.latLngToContainerPoint(tr[0]);

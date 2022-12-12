@@ -1,7 +1,8 @@
-import { DivIcon, DomEvent, Draggable, GeometryUtil, Icon, latLng, LatLng, LatLngExpression, LeafletMouseEvent, Map, MarkerOptions, Polygon, Polyline, Util } from "leaflet";
+import { DivIcon, DomEvent, Draggable, Icon, latLng, LatLng, LatLngExpression, LeafletMouseEvent, Map, MarkerOptions, Polygon, Polyline, Util } from "leaflet";
 import DraggableLinesHandler from "../handler";
 import { getInsertPosition, getRouteInsertPosition, setPoint } from "../utils";
 import DraggableLinesMarker from "./marker";
+import GeometryUtil from "leaflet-geometryutil";
 
 function createIcon(layer: Polyline, baseIcon: Icon | DivIcon) {
     const icon = Util.create(baseIcon);
@@ -106,7 +107,7 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
         // it while we are hovering the outline.
         if (closest.distance > this._layer.options.weight! / 2 + 1)
             return undefined;
-        
+
         return latLng(closest);
     }
 

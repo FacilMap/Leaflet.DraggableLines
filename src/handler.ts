@@ -1,4 +1,4 @@
-import L, { Draggable, Evented, Handler, Icon, LatLng, Layer, LeafletEvent, LeafletMouseEvent, LineUtil, Map, Marker, MarkerOptions, Polygon, Polyline } from 'leaflet';
+import { Draggable, Evented, Handler, LatLng, Layer, LeafletEvent, LeafletMouseEvent, LineUtil, Map, MarkerOptions, Polygon, Polyline } from 'leaflet';
 import GeometryUtil from 'leaflet-geometryutil';
 import { defaultIcon, endIcon, plusIcon, startIcon } from './markers/icons';
 import DraggableLinesDragMarker from './markers/dragMarker';
@@ -19,7 +19,7 @@ export interface DraggableLinesHandlerOptions {
 export default class DraggableLinesHandler extends Handler {
 
     options: DraggableLinesHandlerOptions;
-    
+
     _tempMarker?: DraggableLinesTempMarker;
 
     constructor(map: Map, options?: DraggableLinesHandlerOptions) {
@@ -92,7 +92,7 @@ export default class DraggableLinesHandler extends Handler {
             return;
 
         this.removeDragMarkers(layer);
-        
+
         const latlngs = layer.getDraggableLinesRoutePoints() || (layer.getLatLngs() as LatLng[] | LatLng[][]);
         const routePoints = LineUtil.isFlat(latlngs) ? [latlngs] : latlngs;
         const isFlat = LineUtil.isFlat(latlngs);
@@ -114,7 +114,7 @@ export default class DraggableLinesHandler extends Handler {
     removeDragMarkers(layer: Polyline) {
         if (!layer._draggableLines)
             return;
-        
+
         for (const marker of layer._draggableLines.dragMarkers) {
             marker.removeFrom(this._map);
         }
@@ -130,7 +130,7 @@ export default class DraggableLinesHandler extends Handler {
         const latlngs = layer.getLatLngs() as LatLng[] | LatLng[][];
         const trackPoints = LineUtil.isFlat(latlngs) ? [latlngs] : latlngs;
         const routePoints = layer.getDraggableLinesRoutePoints();
-        
+
         for (let i = 0; i < trackPoints.length; i++) {
             if (trackPoints[i].length < 2)
                 continue;
@@ -143,7 +143,7 @@ export default class DraggableLinesHandler extends Handler {
                     idx = isStart ? 0 : trackPoints[i].length;
                 else
                     idx = isStart ? [i, 0] : [i, trackPoints[i].length];
-                
+
                 const options = {
                     icon: plusIcon,
                     ...this.options.plusMarkerOptions?.(layer, isStart)
@@ -161,7 +161,7 @@ export default class DraggableLinesHandler extends Handler {
     removePlusMarkers(layer: Polyline) {
         if (!layer._draggableLines)
             return;
-        
+
         for (const marker of layer._draggableLines.plusMarkers) {
             marker.removeFrom(this._map);
         }

@@ -28,5 +28,10 @@ export default defineConfig({
 			},
 			external: ['leaflet', 'leaflet-geometryutil']
 		}
+	},
+	resolve: {
+		alias: {
+			'leaflet-draggable-lines': './src/index.ts'
+		}
 	}
 });
