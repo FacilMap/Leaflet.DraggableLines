@@ -1,6 +1,6 @@
 {
   "name": "leaflet-draggable-lines",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A Leaflet plugin to add/move/remove points on routes, lines and polygons by drag&drop.",
   "main": "./dist/L.DraggableLines.js",
   "module": "./dist/L.DraggableLines.mjs",
