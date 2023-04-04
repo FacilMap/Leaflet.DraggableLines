@@ -7,7 +7,7 @@ const format = process.env.FORMAT === 'umd' ? 'umd' : 'es';
 export default defineConfig({
 	plugins: [
 		cssInjectedByJsPlugin(),
-		...(format === 'es' ? [dtsPlugin()] : [])
+		...(format === 'es' ? [dtsPlugin({ clearPureImport: false })] : [])
 	],
 	build: {
 		sourcemap: true,
