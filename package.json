@@ -32,27 +32,27 @@
     "test": "jest --env=jsdom"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.0",
-    "@types/leaflet": "^1.9.3",
-    "@types/node": "^18.15.11",
-    "jest": "^29.5.0",
-    "jest-environment-jsdom": "^29.5.0",
-    "leaflet": "^1.9.3",
-    "leaflet-highlightable-layers": "^1.2.1",
+    "@types/jest": "^29.5.11",
+    "@types/leaflet": "^1.9.8",
+    "@types/node": "^20.10.5",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "leaflet": "^1.9.4",
+    "leaflet-highlightable-layers": "^2.0.0",
     "mini-svg-data-uri": "^1.4.4",
-    "rimraf": "^4.4.1",
-    "ts-jest": "^29.1.0",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.0.3",
-    "vite": "^4.2.1",
-    "vite-plugin-css-injected-by-js": "^3.1.0",
-    "vite-plugin-dts": "^2.2.0"
+    "rimraf": "^5.0.5",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10",
+    "vite-plugin-css-injected-by-js": "^3.3.1",
+    "vite-plugin-dts": "^3.7.0"
   },
   "peerDependencies": {
     "leaflet": "x"
   },
   "dependencies": {
-    "leaflet-geometryutil": "^0.10.1"
+    "leaflet-geometryutil": "^0.10.3"
   },
-  "packageManager": "yarn@3.2.0"
+  "packageManager": "yarn@4.0.2"
 }
