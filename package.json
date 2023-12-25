@@ -2,16 +2,9 @@
   "name": "leaflet-draggable-lines",
   "version": "1.2.1",
   "description": "A Leaflet plugin to add/move/remove points on routes, lines and polygons by drag&drop.",
+  "type": "module",
   "main": "./dist/L.DraggableLines.js",
-  "module": "./dist/L.DraggableLines.mjs",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/L.DraggableLines.mjs",
-      "require": "./dist/L.DraggableLines.js"
-    },
-    "./*": "./*"
-  },
+  "types": "./dist/L.DraggableLines.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/FacilMap/Leaflet.DraggableLines.git"
@@ -25,7 +18,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "FORMAT=es vite build && FORMAT=umd vite build",
+    "build": "vite build",
     "clean": "rimraf dist",
     "dev-server": "vite",
     "check-types": "tsc --noEmit",

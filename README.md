@@ -19,21 +19,37 @@ update the route points rather than the coordinates of the Polyline).
 Tip: Use it together with [Leaflet.HighlightableLayers](https://github.com/FacilMap/Leaflet.HighlightableLayers) to make it easier to
 drag thin lines.
 
-[Demo](https://unpkg.com/leaflet-draggable-lines/example.html)
+[Demo](https://esm.sh/leaflet-draggable-lines/example.html)
 
 
 Usage
 -----
 
-If you are using a module bundler, you can install Leaflet.HighlightableLayers using `npm install -S leaflet-highlightable-layers` and use it in your code using `import DraggableLines from 'leaflet-draggable-lines'`. TypeScript is supported. Note that when using Leaflet.DraggableLines like this, `L.DraggableLines` is not available on the global `L` leaflet object.
+Since release 2.0.0, Leaflet.DraggableLines is published as an ES module only. If you are using a module bundler, you can install it using `npm install -S leaflet-highlightable-layers` and import it in your code:
+```javascript
+import DraggableLines from 'leaflet-draggable-lines';
 
-If you want to use Leaflet.DraggableLines in a static HTML page, it is available as `L.DraggableLines`. It depends on [Leaflet.GeometryUtil](https://github.com/makinacorpus/Leaflet.GeometryUtil). Make sure to load the Leaflet and Leaflet.GeometryUtil scripts before loading Leaflet.DraggableLines. To use Leaflet.DraggableLines, load the [L.DraggableLines.js](./dist/L.DraggableLines.js) script. One easy way to do it is to use
-[UNPKG](https://unpkg.com/):
+...
 ```
-<script src="https://unpkg.com/leaflet"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet-geometryutil"></script>
-<script src="https://unpkg.com/leaflet-draggablelines"></script>
+
+TypeScript is supported.
+
+If you want to use Leaflet.DraggableLines in a static HTML page without using a module bundler (not recommended in production), you need to make sure to import it and Leaflet as a module, for example from esm.sh (note that Leaflet.DraggableLines has an additional dependency, `leaflet-geometryutil`, which is imported automatically when using esm.sh and does not need to explicitly be listed in the import map):
+```html
+<script type="importmap">
+	{
+		"imports": {
+			"leaflet": "https://esm.sh/leaflet",
+			"leaflet-draggable-lines": "https://esm.sh/leaflet-draggable-lines"
+		}
+	}
+</script>
+<script type="module">
+	import L from "leaflet";
+	import DraggableLines from "leaflet-draggable-lines";
+
+	...
+</script>
 ```
 
 
@@ -44,11 +60,11 @@ const map = L.map('map');
 
 new L.Polyline([53.09897, 12.02728], [52.01701, 14.18884], { color: '#0000ff', weight: 10 }).addTo(map);
 
-const draggable = new L.DraggableLines(map);
+const draggable = new DraggableLines(map);
 draggable.enable();
 ```
 
-By default, `L.DraggableLines` makes all Polylines and Polygons with `interactive: true` on the map draggable, including ones that
+By default, `DraggableLines` makes all Polylines and Polygons with `interactive: true` on the map draggable, including ones that
 are added after it has been enabled.
 
 
@@ -75,7 +91,7 @@ async function updateRoute() {
 }
 updateRoute();
 
-const draggable = new L.DraggableLines(map);
+const draggable = new DraggableLines(map);
 draggable.enable();
 
 draggable.on("dragend remove insert", (e) => {
@@ -106,7 +122,7 @@ An example how to control whether dragging is enabled for a particular layer wou
 L.Polyline([[53.09897, 12.02728], [52.01701, 14.18884]], { enableDraggableLines: true }).addTo(map);
 L.Polyline([[52.93871, 11.92566], [52.73629, 12.57935]], { enableDraggableLines: false }).addTo(map);
 
-new L.DraggableLines(map, {
+new DraggableLines(map, {
 	enableForLayer: (layer) => layer.options.enableDraggableLines
 }).enable();
 ```
@@ -118,7 +134,7 @@ a boolean directly:
 const layer1 = L.Polyline([[53.09897, 12.02728], [52.01701, 14.18884]]).addTo(map);
 const layer2 = L.Polyline([[52.93871, 11.92566], [52.73629, 12.57935]]).addTo(map);
 
-const draggable = new L.DraggableLines(map, {
+const draggable = new DraggableLines(map, {
 	enableForLayer: false
 });
 draggable.enable();
@@ -128,9 +144,9 @@ draggable.enableForLayer(layer1);
 
 ### Options
 
-You can pass the following options as the second parameter to `L.DraggableLines`:
+You can pass the following options as the second parameter to `DraggableLines`:
 
-* `enableForLayer`: Configures for which layers dragging should be enabled automatically. When `L.DraggableLines` is enabled by
+* `enableForLayer`: Configures for which layers dragging should be enabled automatically. When `DraggableLines` is enabled by
   calling `enable()`, all Polylines on the map are checked against this. If a Polyline is added to the map later, is is also
   checked against this value.
 
@@ -166,7 +182,7 @@ dimensions of the desired draggable areas.
 
 ### Events
 
-These events are fired on the `L.DraggableLines` instance.
+These events are fired on the `DraggableLines` instance.
 
 #### `dragstart`, `drag`, `dragend`
 
@@ -220,7 +236,7 @@ Fired when the user hovers or unhovers one of the draggable markers that is rend
 
 Carries an object with the following properties:
 * `layer`: The Polyline which the drag marker belongs to
-* `marker`: The marker, an instance of `L.DraggableLines.DragMarker`
+* `marker`: The marker, an instance of `DraggableLines.DragMarker`
 * `idx`: The index to which point the marker belongs. A number for simple Polylines, a tuple of two numbers for a MultiPolyline
   or a Polygon.
 
@@ -231,7 +247,7 @@ Fired as the user hovers or unhovers the line and a temporary drag marker is sho
 
 Carries an object with the following properties:
 * `layer`: The Polyline which is hovered
-* `marker`: The temporary marker, an instance of `L.DraggableLines.TempMarker`
+* `marker`: The temporary marker, an instance of `DraggableLines.TempMarker`
 * `idx`: The index where a route point would be inserted if the user started dragging from here. A number for simple Polylines,
   a tuple of two numbers for a MultiPolyline or a Polygon. Note that this can change as the user hovers across the line. The
   `tempmouseout` event may have a different `idx` than its preceding `tempmouseover` event.
@@ -244,9 +260,9 @@ Fired as the user hovers or unhovers the plus icons at the beginning and end of 
 
 Carries an object with the following properties:
 * `layer`: The Polyline to which the plus icons belong
-* `marker`: The temporary marker which is rendered on top of the plus icon, an instance of `L.DraggableLines.PlusTempMarker`
-  (which is a sub-class of `L.DraggableLines.TempMarker`)
-* `plusMarker`: The marker that contains the plus icon, an instance of `L.DraggableLines.PlusMarker`.
+* `marker`: The temporary marker which is rendered on top of the plus icon, an instance of `DraggableLines.PlusTempMarker`
+  (which is a sub-class of `DraggableLines.TempMarker`)
+* `plusMarker`: The marker that contains the plus icon, an instance of `DraggableLines.PlusMarker`.
 * `idx`: The index where a route point would be inserted if the user started dragging from here. A number for simple Polylines,
   a tuple of two numbers for a MultiPolyline. Because plus icons are only rendered at the very beginning and end of each line,
   the index is either 0 or equal to the length of route points.
@@ -254,7 +270,7 @@ Carries an object with the following properties:
 
 ### Methods
 
-These methods can be called on instances of `L.DraggableLines`.
+These methods can be called on instances of `DraggableLines`.
 
 * `enableForLayer(layer)`: Manually enable dragging for a specific layer.
 * `disableForLayer(layer)`: Manually disable dragging for a specific layer.
@@ -274,12 +290,12 @@ Polyline and its subclasses.
   represents. When this option is set, Leaflet.DraggableLines renders the points from this array instead of the ones
   from `getLatLngs()` as draggable markers, and when the route is dragged it modifies this array instead of the actual
   points of the line.
-  
+
   This is only supported for single polylines, it is not supported for Polygons or MultiPolylines
   where `getLatLngs()` returns an array of arrays.
 
   To update the route points of an existing line, use the `setDraggableLinesRoutePoints` method rather than setting
-  `layer.options.draggableLinesRoutePoints` manually, to make sure that L.DraggableLines notices the change and
+  `layer.options.draggableLinesRoutePoints` manually, to make sure that `DraggableLines` notices the change and
   updates the positions of the drag markers.
 
 #### Methods
