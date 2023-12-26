@@ -19,7 +19,7 @@ update the route points rather than the coordinates of the Polyline).
 Tip: Use it together with [Leaflet.HighlightableLayers](https://github.com/FacilMap/Leaflet.HighlightableLayers) to make it easier to
 drag thin lines.
 
-[Demo](https://esm.sh/leaflet-draggable-lines/example.html)
+[Demo](https://esm.sh/*leaflet-draggable-lines/example.html)
 
 
 Usage
