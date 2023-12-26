@@ -1,9 +1,10 @@
 import { getFromPosition, insertAtPosition, removeFromPosition, updateAtPosition } from "../utils";
+import { expect, test } from "vitest";
 
 test('getFromPosition', () => {
     expect(getFromPosition(['a', 'b'], 0)).toEqual('a');
     expect(getFromPosition(['a', 'b'], 1)).toEqual('b');
-    
+
     expect(getFromPosition([['a', 'b'], ['c', 'd']], [0, 0])).toEqual('a');
     expect(getFromPosition([['a', 'b'], ['c', 'd']], [0, 1])).toEqual('b');
     expect(getFromPosition([['a', 'b'], ['c', 'd']], [1, 0])).toEqual('c');

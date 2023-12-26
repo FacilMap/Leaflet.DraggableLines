@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 import dtsPlugin from 'vite-plugin-dts';
@@ -34,5 +35,8 @@ export default defineConfig({
 		alias: {
 			'leaflet-draggable-lines': './src/index.ts'
 		}
+	},
+	test: {
+		environment: 'happy-dom'
 	}
 });
