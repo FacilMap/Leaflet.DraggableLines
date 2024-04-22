@@ -79,7 +79,7 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
     getIdx() {
         const latlng = this.getLatLng();
         if (this._layer.hasDraggableLinesRoutePoints())
-            return getRouteInsertPosition(this._map, this._layer.getDraggableLinesRoutePoints()!, this._layer.getLatLngs() as any, latlng);
+            return getRouteInsertPosition(this._map, this._draggable._getRoutePointIndexes(this._layer)!, this._layer.getLatLngs() as any, latlng);
         else
             return getInsertPosition(this._map, this._layer.getLatLngs() as LatLng[] | LatLng[][], latlng, this._layer instanceof Polygon);
     }

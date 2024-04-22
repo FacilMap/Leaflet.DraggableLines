@@ -4,7 +4,7 @@ import { defaultIcon, endIcon, plusIcon, startIcon } from './markers/icons';
 import DraggableLinesDragMarker from './markers/dragMarker';
 import DraggableLinesPlusMarker from './markers/plusMarker';
 import DraggableLinesTempMarker from './markers/tempMarker';
-import { getPlusIconPoint } from './utils';
+import { getPlusIconPoint, _locateOnLine } from './utils';
 
 export interface DraggableLinesHandlerOptions {
     enableForLayer?: boolean | Polyline | Polyline[] | ((layer: Polyline) => boolean);
@@ -87,6 +87,7 @@ export default class DraggableLinesHandler extends (() => {
             this.removeTempMarker();
 
             if (layer._draggableLines) {
+                layer._draggableLines.routePointIndexes = undefined; // Reset cache
                 this.drawDragMarkers(layer);
                 this.drawPlusMarkers(layer);
             }
@@ -200,7 +201,8 @@ export default class DraggableLinesHandler extends (() => {
             plusMarkers: [],
             zoomEndHandler: () => {
                 this.drawPlusMarkers(layer);
-            }
+            },
+            routePointIndexes: undefined
         };
         layer.on("mouseover", this.handleLayerMouseOver);
         layer.on("draggableLines-setLatLngs", this.handleLayerSetLatLngs);
@@ -245,6 +247,21 @@ export default class DraggableLinesHandler extends (() => {
             else if (layer._draggableLines)
                 this.redrawForLayer(layer);
         });
+    }
+
+    _getRoutePointIndexes(layer: Polyline): number[] | undefined {
+        if (!layer._draggableLines) {
+            return undefined;
+        } else if (!layer._draggableLines.routePointIndexes) {
+            const routePoints = layer.getDraggableLinesRoutePoints();
+            if (!routePoints) {
+                return undefined;
+            }
+            const latlngs = layer.getLatLngs() as LatLng[];
+            layer._draggableLines.routePointIndexes = _locateOnLine(this._map, [latlngs], routePoints).map((r) => r[1]);
+        }
+
+        return layer._draggableLines.routePointIndexes;
     }
 
 }

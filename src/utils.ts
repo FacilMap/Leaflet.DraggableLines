@@ -1,12 +1,62 @@
 import * as L from "leaflet";
-import GeometryUtil from "leaflet-geometryutil";
 
 export type PolylineIndex = number | [number, number];
 
 /**
+ * Returns indexes that indicate the positions of each of the given points on the given polyline.
+ * For each point, calculates the segment that the point is closest to. The returned number is a fractional value in
+ * between the indexes of the two segment points in the trackPoints sub-array, depending on where exactly the given point
+ * lies on the segment.
+ * The resulting array has the same length and order as the points array. Each value is a tuple of the index in the
+ * trackPoints array and the fractional index in the trackPoint sub-array.
+ */
+export function _locateOnLine(map: L.Map, trackPoints: L.LatLng[][], points: L.LatLng[]): Array<[number, number]> {
+    if (!trackPoints.some((t) => t.length >= 2)) {
+        return points.map(() => [0, 0]);
+    }
+
+    // Inspired by L.GeometryUtil.locateOnLine() (https://github.com/makinacorpus/Leaflet.GeometryUtil/blob/75fc60255cc973c931c069f281b6514a8904ee21/src/leaflet.geometryutil.js#L567)
+    // but much more performant for our use case:
+    // - we don't need precise line distances, just the index of the closest segment and the fraction on it
+    // - we need to calculate the index for multiple points on multiple lines, which is more performant if we need
+    //   to project the points just once.
+
+    let maxzoom = map.getMaxZoom();
+    if (maxzoom === Infinity) {
+        maxzoom = map.getZoom();
+    }
+
+    const projectedPoints = points.map((point) => map.project(point, maxzoom));
+
+    const results: Array<{ sqDist: number; idx: [number, number]; point: L.Point; pointA: L.Point; pointB: L.Point }> = [];
+
+    for (let i = 0; i < trackPoints.length; i++) {
+        let pointA: L.Point;
+        let pointB = map.project(trackPoints[i][0], maxzoom);
+        for (let j = 1; j < trackPoints[i].length; j++) {
+            pointA = pointB;
+            pointB = map.project(trackPoints[i][j], maxzoom);
+
+            for (let k = 0; k < projectedPoints.length; k++) {
+                const point = projectedPoints[k];
+                const sqDist = L.LineUtil._sqClosestPointOnSegment(point, pointA, pointB, true);
+                if (results[k] == null || sqDist < results[k].sqDist) {
+                    results[k] = { sqDist, idx: [i, j - 1], point, pointA, pointB };
+                }
+            }
+        }
+    }
+
+    return results.map((result) => {
+        const closest = L.LineUtil.closestPointOnSegment(result.point, result.pointA, result.pointB);
+        return [result.idx[0], result.idx[1] + (closest.x - result.pointA.x) / (result.pointB.x - result.pointA.x)]; // Since closest is on line between pointA and pointB, the ratio of x and y are the same
+    });
+}
+
+/**
  * If `points` is the array of coordinates or array of arrays of coordinates that a Polyline/Polygon consists of and `point` is the
  * coordinates where the dragging starts, this method returns the index in the `points` array where the new point should be inserted.
- * The returned value is a number of a tuple of two numbers, depending on whether `points` is an array or an array of arrays.
+ * The returned value is a number or a tuple of two numbers, depending on whether `points` is an array or an array of arrays.
  *
  * @param map: The instance of `L.Map`.
  * @param points: An array of coordinates or array of arrays of coordinates as returned by `layer.getLatLngs()`.
@@ -22,29 +72,12 @@ export function getInsertPosition(map: L.Map, points: L.LatLng[], point: L.LatLn
 export function getInsertPosition(map: L.Map, points: L.LatLng[][], point: L.LatLng, isPolygon?: boolean): [number, number];
 export function getInsertPosition(map: L.Map, points: L.LatLng[] | L.LatLng[][], point: L.LatLng, isPolygon?: boolean): number | [number, number];
 export function getInsertPosition(map: L.Map, points: L.LatLng[] | L.LatLng[][], point: L.LatLng, isPolygon = false): number | [number, number] {
-    if (!L.LineUtil.isFlat(points)) {
-        // In case of a multi polyline/polygon, we need to figure out first which one of the polylines/polygons the closest point is on.
-        // GeometryUtil.closest() doesn't seem to tell us that, so we need to check the distance to each sub polyline/polygon manually.
-        // Internally, GeometryUtil.closest() seems to do it the same way.
-        let result: { distance: number, i: number } | undefined;
-        for (let i = 0; i < points.length; i++) {
-            const polyline = isPolygon ? L.polygon(points[i]) : L.polyline(points[i]);
-            const distance = GeometryUtil.closest(map, polyline, point)!.distance;
-            if (!result || distance < result.distance) {
-                result = { distance, i };
-            }
-        }
-        return result ? [result.i, getInsertPosition(map, points[result.i], point, isPolygon)] : [0, 0];
+    if (L.LineUtil.isFlat(points)) {
+        return Math.ceil(_locateOnLine(map, [isPolygon ? [...points, points[0]] : points], [point])[0][1]);
+    } else {
+        const res = _locateOnLine(map, isPolygon ? points.map((p) => [...p, p[0]]) : points, [point])[0];
+        return [res[0], Math.ceil(res[1])];
     }
-
-    const polyline = L.polyline(isPolygon ? [...points, points[0]] : points);
-    const pos = GeometryUtil.locateOnLine(map, polyline, point);
-    const before = GeometryUtil.extract(map, polyline, 0, pos);
-
-    let idx = before.length - 1;
-    if (!isPolygon)
-        idx = Math.max(1, Math.min(points.length - 1, idx));
-    return idx;
 }
 
 
@@ -54,19 +87,26 @@ export function getInsertPosition(map: L.Map, points: L.LatLng[] | L.LatLng[][],
  * points, but should lead an additional point in the set of route points rather than track points, so that the route can be recalculated.
  * This method returns the index where the new route point should be inserted into the array of route points.
  * @param map: The instance of `L.Map`.
- * @param routePoints: An array of coordinates that are the waypoints that are used as the basis for calculating the route.
+ * @param routePoints: An array of coordinates that are the waypoints that are used as the basis for calculating the route. If an array
+ *     of numbers is passed instead, these are assumed to be the already calculated indexes for the route points.
  * @param trackPoints: An array of coordinates as returned by `layer.getLatLngs()`.
  * @param point: An instance of `L.LatLng` that represents the point on the line where dragging has started.
  */
-export function getRouteInsertPosition(map: L.Map, routePoints: L.LatLng[], trackPoints: L.LatLng[], point: L.LatLng): number {
-    const polyline = L.polyline(trackPoints);
-    const pos = GeometryUtil.locateOnLine(map, polyline, point);
+export function getRouteInsertPosition(map: L.Map, routePoints: L.LatLng[] | number[], trackPoints: L.LatLng[], point: L.LatLng): number {
+    let pointIndex: number;
+    let routePointIndexes: number[];
+    if (typeof routePoints[0] === "number") {
+        pointIndex = _locateOnLine(map, [trackPoints], [point])[0][1];
+        routePointIndexes = routePoints as number[];
+    } else {
+        [pointIndex, ...routePointIndexes] = _locateOnLine(map, [trackPoints], [point, ...routePoints as L.LatLng[]]).map((r) => r[1]);
+    }
 
-    for (let i = 1; i < routePoints.length; i++) {
-        if (GeometryUtil.locateOnLine(map, polyline, routePoints[i]) > pos)
+    for (let i = 1; i < routePointIndexes.length; i++) {
+        if (routePointIndexes[i] > pointIndex)
             return i;
     }
-    return routePoints.length - 1;
+    return routePointIndexes.length - 1;
 }
 
 export function getFromPosition<T, A extends T[] | T[][]>(arr: A, idx: PolylineIndex): T {

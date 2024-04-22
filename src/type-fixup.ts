@@ -22,5 +22,7 @@ declare module "leaflet" {
 
     namespace LineUtil {
         function isFlat(latlngs: LatLngExpression[] | LatLngExpression[][]): latlngs is LatLngExpression[];
+        function _sqClosestPointOnSegment(p: Point, p1: Point, p2: Point, sqDist?: false): Point;
+        function _sqClosestPointOnSegment(p: Point, p1: Point, p2: Point, sqDist: true): number;
     }
 }
