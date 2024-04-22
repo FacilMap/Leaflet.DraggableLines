@@ -1793,7 +1793,6 @@ __metadata:
     "@types/node": "npm:^20.12.7"
     happy-dom: "npm:^14.7.1"
     leaflet: "npm:^1.9.4"
-    leaflet-geometryutil: "npm:^0.10.3"
     leaflet-highlightable-layers: "npm:^3.0.1"
     mini-svg-data-uri: "npm:^1.4.4"
     rimraf: "npm:^5.0.5"
@@ -1807,15 +1806,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"leaflet-geometryutil@npm:^0.10.3":
-  version: 0.10.3
-  resolution: "leaflet-geometryutil@npm:0.10.3"
-  dependencies:
-    leaflet: "npm:^1.6.0"
-  checksum: 9c87c8e535c2a4a053e11d3239606270015b092516d06bc1be73a75db6674fc3b966f4393f0dc299781714f1af8f7483686c291c4d76a0d98444215579bc95a0
-  languageName: node
-  linkType: hard
-
 "leaflet-highlightable-layers@npm:^3.0.1":
   version: 3.0.1
   resolution: "leaflet-highlightable-layers@npm:3.0.1"
@@ -1825,7 +1815,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"leaflet@npm:^1.6.0, leaflet@npm:^1.9.4":
+"leaflet@npm:^1.9.4":
   version: 1.9.4
   resolution: "leaflet@npm:1.9.4"
   checksum: 7b6a74d503980961a85bdabebf9d1162c26db0e88195800ceea311682b653d621718f2ada3c9aab903a735af9862c9ae278ba550d4429acbd954d43449cd0d77

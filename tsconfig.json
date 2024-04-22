@@ -4,7 +4,8 @@
 		"esModuleInterop": true,
 		"strict": true,
 		"moduleResolution": "bundler",
-		"module": "esnext"
+		"module": "esnext",
+		"skipLibCheck": true
 	},
 	"include": ["src/**/*"]
 }

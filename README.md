@@ -34,7 +34,7 @@ import DraggableLines from 'leaflet-draggable-lines';
 
 TypeScript is supported.
 
-If you want to use Leaflet.DraggableLines in a static HTML page without using a module bundler (not recommended in production), you need to make sure to import it and Leaflet as a module, for example from esm.sh (note that Leaflet.DraggableLines has an additional dependency, `leaflet-geometryutil`, which is imported automatically when using esm.sh and does not need to explicitly be listed in the import map):
+If you want to use Leaflet.DraggableLines in a static HTML page without using a module bundler (not recommended in production), you need to make sure to import it and Leaflet as a module, for example from esm.sh:
 ```html
 <script type="importmap">
 	{

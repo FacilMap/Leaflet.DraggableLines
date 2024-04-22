@@ -42,8 +42,5 @@
   "peerDependencies": {
     "leaflet": "x"
   },
-  "dependencies": {
-    "leaflet-geometryutil": "^0.10.3"
-  },
   "packageManager": "yarn@4.0.2"
 }

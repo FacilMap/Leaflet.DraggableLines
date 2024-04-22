@@ -1,10 +1,9 @@
 import { Draggable, Evented, Handler, LatLng, Layer, LeafletEvent, LeafletMouseEvent, LineUtil, Map, MarkerOptions, Polygon, Polyline } from 'leaflet';
-import GeometryUtil from 'leaflet-geometryutil';
 import { defaultIcon, endIcon, plusIcon, startIcon } from './markers/icons';
 import DraggableLinesDragMarker from './markers/dragMarker';
 import DraggableLinesPlusMarker from './markers/plusMarker';
 import DraggableLinesTempMarker from './markers/tempMarker';
-import { getPlusIconPoint, _locateOnLine } from './utils';
+import { getPlusIconPoint, locateOnLine } from './utils';
 
 export interface DraggableLinesHandlerOptions {
 	enableForLayer?: boolean | Polyline | Polyline[] | ((layer: Polyline) => boolean);
@@ -182,7 +181,7 @@ export default class DraggableLinesHandler extends (() => {
 			icon: defaultIcon,
 			...this.options.tempMarkerOptions?.(layer)
 		};
-		this._tempMarker = new DraggableLinesTempMarker(this, layer, GeometryUtil.closest(this._map, layer, latlng)!, options).addTo(this._map);
+		this._tempMarker = new DraggableLinesTempMarker(this, layer, latlng, options).addTo(this._map);
 	}
 
 	removeTempMarker() {
@@ -258,7 +257,7 @@ export default class DraggableLinesHandler extends (() => {
 				return undefined;
 			}
 			const latlngs = layer.getLatLngs() as LatLng[];
-			layer._draggableLines.routePointIndexes = _locateOnLine(this._map, [latlngs], routePoints).map((r) => r[1]);
+			layer._draggableLines.routePointIndexes = locateOnLine(this._map, [latlngs], routePoints).map((r) => r.idx[1]);
 		}
 
 		return layer._draggableLines.routePointIndexes;

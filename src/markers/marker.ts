@@ -1,6 +1,6 @@
 import { LatLng, LatLngExpression, LeafletEvent, Map, Marker, MarkerOptions, Polyline } from "leaflet";
 import DraggableLinesHandler from "../handler";
-import { setPoint } from "../utils";
+import { PolylineIndex, setPoint } from "../utils";
 
 export default abstract class DraggableLinesMarker extends Marker {
 
@@ -35,7 +35,7 @@ export default abstract class DraggableLinesMarker extends Marker {
 		return this;
 	}
 
-	abstract getIdx(): number | [number, number];
+	abstract getIdx(): PolylineIndex;
 
 	handleDragStart(e: LeafletEvent) {
 		const latlng = this.getLatLng();

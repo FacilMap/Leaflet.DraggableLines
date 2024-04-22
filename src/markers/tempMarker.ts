@@ -1,8 +1,7 @@
-import { DivIcon, DomEvent, Draggable, Icon, latLng, LatLng, LatLngExpression, LeafletMouseEvent, Map, MarkerOptions, Polygon, Polyline, Util } from "leaflet";
+import { DivIcon, DomEvent, Draggable, Icon, LatLng, LatLngExpression, LeafletMouseEvent, Map, MarkerOptions, Polygon, Polyline, Util } from "leaflet";
 import DraggableLinesHandler from "../handler";
-import { getInsertPosition, getRouteInsertPosition, setPoint } from "../utils";
+import { locateOnLine, getRouteInsertPosition, setPoint, PolylineIndex } from "../utils";
 import DraggableLinesMarker from "./marker";
-import GeometryUtil from "leaflet-geometryutil";
 
 function createIcon(layer: Polyline, baseIcon: Icon | DivIcon) {
 	const icon = Util.create(baseIcon);
@@ -17,11 +16,18 @@ function createIcon(layer: Polyline, baseIcon: Icon | DivIcon) {
 		img.style.boxSizing = "content-box";
 		img.style.marginLeft = `${parseInt(img.style.marginLeft) - padding}px`;
 		img.style.marginTop = `${parseInt(img.style.marginTop) - padding}px`;
+
+		// Initialize the icon as hidden
+		img.style.display = "none";
 	};
 	return icon;
 }
 
+type RenderPoint = { idx: PolylineIndex; closest: LatLng };
+
 export default class DraggableLinesTempMarker extends DraggableLinesMarker {
+
+	renderPoint?: RenderPoint;
 
 	constructor(draggable: DraggableLinesHandler, layer: Polyline, latlng: LatLngExpression, options: MarkerOptions) {
 		super(draggable, layer, latlng, true, {
@@ -39,7 +45,7 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
 		DomEvent.on(map.getContainer(), "mouseover", this.handleMapMouseOver, this); // Bind manually since map.on("mouseover") does not receive bubbling events
 		this.on('click', this.handleClick, this);
 
-		this.fireMouseOver();
+		this.updateLatLng(this.getLatLng());
 
 		return this;
 	}
@@ -77,17 +83,21 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
 	}
 
 	getIdx() {
-		const latlng = this.getLatLng();
-		if (this._layer.hasDraggableLinesRoutePoints())
-			return getRouteInsertPosition(this._map, this._draggable._getRoutePointIndexes(this._layer)!, this._layer.getLatLngs() as any, latlng);
-		else
-			return getInsertPosition(this._map, this._layer.getLatLngs() as LatLng[] | LatLng[][], latlng, this._layer instanceof Polygon);
+		if (!this.renderPoint) {
+			throw new Error("renderPoint is not set");
+		}
+
+		return this.renderPoint.idx;
 	}
 
 
 	handleClick() {
-		const latlng = this.getLatLng();
-		const idx = this.getIdx();
+		if (!this.renderPoint) {
+			return;
+		}
+
+		const latlng = this.renderPoint.closest;
+		const idx = this.renderPoint.idx;
 
 		setPoint(this._layer, latlng, idx, true);
 
@@ -95,44 +105,58 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
 	}
 
 
-	shouldRemove(latlng: LatLng) {
-		return !this._layer._containsPoint(this._map.latLngToLayerPoint(latlng));
+	shouldRemove(mouseLatlng: LatLng) {
+		return !this._layer._containsPoint(this._map.latLngToLayerPoint(mouseLatlng));
 	}
 
 
-	getRenderPoint(latlng: LatLng): LatLng | undefined {
-		const closest = GeometryUtil.closest(this._map, this._layer, latlng)!;
+	// Overridden by DraggableLinesPlusTempMarker
+	getRenderPoint(mouseLatLng: LatLng): RenderPoint | undefined {
+		const loc = locateOnLine(this._map, this._layer.getLatLngs() as LatLng[] | LatLng[][], mouseLatLng, this._layer instanceof Polygon);
 
 		// In case of a polygon, we want to hide the marker while we are hovering the fill, we only want to show
 		// it while we are hovering the outline.
-		if (closest.distance > this._layer.options.weight! / 2 + 1)
+		const distancePx = this._map.project(mouseLatLng).distanceTo(this._map.project(loc.closest));
+		if (distancePx > this._layer.options.weight! / 2 + 1)
 			return undefined;
 
-		return latLng(closest);
+		let idx: PolylineIndex = this._layer.hasDraggableLinesRoutePoints()
+			? getRouteInsertPosition(this._map, this._draggable._getRoutePointIndexes(this._layer)!, this._layer.getLatLngs() as LatLng[], loc.idx as number)
+			: Array.isArray(loc.idx) ? [loc.idx[0], Math.ceil(loc.idx[1])] : Math.ceil(loc.idx);
+
+		return {
+			closest: loc.closest,
+			idx
+		};
+	}
+
+
+	updateLatLng(mouseLatLng: LatLng) {
+		if (Draggable._dragging)
+			return false;
+
+		if (this.shouldRemove(mouseLatLng)) {
+			this.remove();
+			return false;
+		}
+
+		this.renderPoint = this.getRenderPoint(mouseLatLng);
+
+		if (this.renderPoint)
+			this.setLatLng(this.renderPoint.closest);
+
+		const isVisible = !this.isHidden();
+		if (this.renderPoint && !isVisible)
+			this.show();
+		else if (!this.renderPoint && isVisible)
+			this.hide();
+		else if (isVisible)
+			this.fireMouseMove();
 	}
 
 
 	handleMapMouseMove(e: LeafletMouseEvent) {
-		if (Draggable._dragging)
-			return;
-
-		if (this.shouldRemove(this._map.mouseEventToLatLng(e.originalEvent))) {
-			this.remove();
-			return;
-		}
-
-		const latlng = this.getRenderPoint(this._map.mouseEventToLatLng(e.originalEvent));
-
-		if (latlng)
-			this.setLatLng(latlng);
-
-		const isVisible = !this.isHidden();
-		if (latlng && !isVisible)
-			this.show();
-		else if (!latlng && isVisible)
-			this.hide();
-		else if (isVisible)
-			this.fireMouseMove();
+		this.updateLatLng(this._map.mouseEventToLatLng(e.originalEvent));
 	};
 
 
@@ -152,7 +176,7 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
 	}
 
 	fireMouseOut() {
-		this._draggable.fire("tempmouseout", { layer: this._layer, idx: this.getIdx(), marker: this, latlng: this.getLatLng() });
+		this._draggable.fire("tempmouseout", { layer: this._layer, marker: this });
 	}
 
 }

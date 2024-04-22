@@ -64,10 +64,6 @@ export class DraggableLinesPlusTempMarker extends DraggableLinesTempMarker {
 		this._idx = idx;
 	}
 
-	getIdx() {
-		return this._idx;
-	}
-
 	shouldRemove(latlng: LatLng) {
 		const layerPoint = this._map.latLngToLayerPoint(latlng);
 		const position = DomUtil.getPosition(this._plusMarker._icon);
@@ -76,7 +72,7 @@ export class DraggableLinesPlusTempMarker extends DraggableLinesTempMarker {
 	}
 
 	getRenderPoint() {
-		return this.getLatLng();
+		return { idx: this._idx, closest: this.getLatLng() };
 	}
 
 	fireMouseOver() {
