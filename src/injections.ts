@@ -1,25 +1,4 @@
-import { latLng, LatLngExpression, Marker, Polyline } from "leaflet";
-
-declare module "leaflet" {
-	interface Polyline {
-		hasDraggableLinesRoutePoints: () => boolean;
-		getDraggableLinesRoutePoints: () => LatLng[] | undefined;
-		setDraggableLinesRoutePoints: (routePoints: LatLngExpression[] | undefined) => void;
-	}
-
-	interface PolylineOptions {
-		draggableLinesRoutePoints?: LatLngExpression[];
-	}
-
-	interface Polyline {
-		_draggableLines?: {
-			dragMarkers: Marker[];
-			plusMarkers: Marker[];
-			zoomEndHandler: () => void;
-			routePointIndexes: number[] | undefined;
-		};
-	}
-}
+import { latLng, LatLngExpression, Polyline } from "leaflet";
 
 Polyline.prototype.hasDraggableLinesRoutePoints = function() {
 	return this.options.draggableLinesRoutePoints != null;

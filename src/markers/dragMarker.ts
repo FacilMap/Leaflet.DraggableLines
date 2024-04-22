@@ -1,4 +1,4 @@
-import { Draggable, Icon, LatLng, LatLngExpression, Map, MarkerOptions, Polygon, Polyline } from "leaflet";
+import { Draggable, LatLng, LatLngExpression, Map, MarkerOptions, Polygon, Polyline } from "leaflet";
 import DraggableLinesHandler from "../handler";
 import { removePoint } from "../utils";
 import DraggableLinesMarker from "./marker";
