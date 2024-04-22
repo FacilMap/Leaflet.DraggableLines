@@ -11,46 +11,46 @@ export type PolylineIndex = number | [number, number];
  * trackPoints array and the fractional index in the trackPoint sub-array.
  */
 export function _locateOnLine(map: L.Map, trackPoints: L.LatLng[][], points: L.LatLng[]): Array<[number, number]> {
-    if (!trackPoints.some((t) => t.length >= 2)) {
-        return points.map(() => [0, 0]);
-    }
+	if (!trackPoints.some((t) => t.length >= 2)) {
+		return points.map(() => [0, 0]);
+	}
 
-    // Inspired by L.GeometryUtil.locateOnLine() (https://github.com/makinacorpus/Leaflet.GeometryUtil/blob/75fc60255cc973c931c069f281b6514a8904ee21/src/leaflet.geometryutil.js#L567)
-    // but much more performant for our use case:
-    // - we don't need precise line distances, just the index of the closest segment and the fraction on it
-    // - we need to calculate the index for multiple points on multiple lines, which is more performant if we need
-    //   to project the points just once.
+	// Inspired by L.GeometryUtil.locateOnLine() (https://github.com/makinacorpus/Leaflet.GeometryUtil/blob/75fc60255cc973c931c069f281b6514a8904ee21/src/leaflet.geometryutil.js#L567)
+	// but much more performant for our use case:
+	// - we don't need precise line distances, just the index of the closest segment and the fraction on it
+	// - we need to calculate the index for multiple points on multiple lines, which is more performant if we need
+	//   to project the points just once.
 
-    let maxzoom = map.getMaxZoom();
-    if (maxzoom === Infinity) {
-        maxzoom = map.getZoom();
-    }
+	let maxzoom = map.getMaxZoom();
+	if (maxzoom === Infinity) {
+		maxzoom = map.getZoom();
+	}
 
-    const projectedPoints = points.map((point) => map.project(point, maxzoom));
+	const projectedPoints = points.map((point) => map.project(point, maxzoom));
 
-    const results: Array<{ sqDist: number; idx: [number, number]; point: L.Point; pointA: L.Point; pointB: L.Point }> = [];
+	const results: Array<{ sqDist: number; idx: [number, number]; point: L.Point; pointA: L.Point; pointB: L.Point }> = [];
 
-    for (let i = 0; i < trackPoints.length; i++) {
-        let pointA: L.Point;
-        let pointB = map.project(trackPoints[i][0], maxzoom);
-        for (let j = 1; j < trackPoints[i].length; j++) {
-            pointA = pointB;
-            pointB = map.project(trackPoints[i][j], maxzoom);
+	for (let i = 0; i < trackPoints.length; i++) {
+		let pointA: L.Point;
+		let pointB = map.project(trackPoints[i][0], maxzoom);
+		for (let j = 1; j < trackPoints[i].length; j++) {
+			pointA = pointB;
+			pointB = map.project(trackPoints[i][j], maxzoom);
 
-            for (let k = 0; k < projectedPoints.length; k++) {
-                const point = projectedPoints[k];
-                const sqDist = L.LineUtil._sqClosestPointOnSegment(point, pointA, pointB, true);
-                if (results[k] == null || sqDist < results[k].sqDist) {
-                    results[k] = { sqDist, idx: [i, j - 1], point, pointA, pointB };
-                }
-            }
-        }
-    }
+			for (let k = 0; k < projectedPoints.length; k++) {
+				const point = projectedPoints[k];
+				const sqDist = L.LineUtil._sqClosestPointOnSegment(point, pointA, pointB, true);
+				if (results[k] == null || sqDist < results[k].sqDist) {
+					results[k] = { sqDist, idx: [i, j - 1], point, pointA, pointB };
+				}
+			}
+		}
+	}
 
-    return results.map((result) => {
-        const closest = L.LineUtil.closestPointOnSegment(result.point, result.pointA, result.pointB);
-        return [result.idx[0], result.idx[1] + (closest.x - result.pointA.x) / (result.pointB.x - result.pointA.x)]; // Since closest is on line between pointA and pointB, the ratio of x and y are the same
-    });
+	return results.map((result) => {
+		const closest = L.LineUtil.closestPointOnSegment(result.point, result.pointA, result.pointB);
+		return [result.idx[0], result.idx[1] + (closest.x - result.pointA.x) / (result.pointB.x - result.pointA.x)]; // Since closest is on line between pointA and pointB, the ratio of x and y are the same
+	});
 }
 
 /**
@@ -72,12 +72,12 @@ export function getInsertPosition(map: L.Map, points: L.LatLng[], point: L.LatLn
 export function getInsertPosition(map: L.Map, points: L.LatLng[][], point: L.LatLng, isPolygon?: boolean): [number, number];
 export function getInsertPosition(map: L.Map, points: L.LatLng[] | L.LatLng[][], point: L.LatLng, isPolygon?: boolean): number | [number, number];
 export function getInsertPosition(map: L.Map, points: L.LatLng[] | L.LatLng[][], point: L.LatLng, isPolygon = false): number | [number, number] {
-    if (L.LineUtil.isFlat(points)) {
-        return Math.ceil(_locateOnLine(map, [isPolygon ? [...points, points[0]] : points], [point])[0][1]);
-    } else {
-        const res = _locateOnLine(map, isPolygon ? points.map((p) => [...p, p[0]]) : points, [point])[0];
-        return [res[0], Math.ceil(res[1])];
-    }
+	if (L.LineUtil.isFlat(points)) {
+		return Math.ceil(_locateOnLine(map, [isPolygon ? [...points, points[0]] : points], [point])[0][1]);
+	} else {
+		const res = _locateOnLine(map, isPolygon ? points.map((p) => [...p, p[0]]) : points, [point])[0];
+		return [res[0], Math.ceil(res[1])];
+	}
 }
 
 
@@ -93,24 +93,24 @@ export function getInsertPosition(map: L.Map, points: L.LatLng[] | L.LatLng[][],
  * @param point: An instance of `L.LatLng` that represents the point on the line where dragging has started.
  */
 export function getRouteInsertPosition(map: L.Map, routePoints: L.LatLng[] | number[], trackPoints: L.LatLng[], point: L.LatLng): number {
-    let pointIndex: number;
-    let routePointIndexes: number[];
-    if (typeof routePoints[0] === "number") {
-        pointIndex = _locateOnLine(map, [trackPoints], [point])[0][1];
-        routePointIndexes = routePoints as number[];
-    } else {
-        [pointIndex, ...routePointIndexes] = _locateOnLine(map, [trackPoints], [point, ...routePoints as L.LatLng[]]).map((r) => r[1]);
-    }
+	let pointIndex: number;
+	let routePointIndexes: number[];
+	if (typeof routePoints[0] === "number") {
+		pointIndex = _locateOnLine(map, [trackPoints], [point])[0][1];
+		routePointIndexes = routePoints as number[];
+	} else {
+		[pointIndex, ...routePointIndexes] = _locateOnLine(map, [trackPoints], [point, ...routePoints as L.LatLng[]]).map((r) => r[1]);
+	}
 
-    for (let i = 1; i < routePointIndexes.length; i++) {
-        if (routePointIndexes[i] > pointIndex)
-            return i;
-    }
-    return routePointIndexes.length - 1;
+	for (let i = 1; i < routePointIndexes.length; i++) {
+		if (routePointIndexes[i] > pointIndex)
+			return i;
+	}
+	return routePointIndexes.length - 1;
 }
 
 export function getFromPosition<T, A extends T[] | T[][]>(arr: A, idx: PolylineIndex): T {
-    return Array.isArray(idx) ? (arr as any)[idx[0]][idx[1]] : arr[idx];
+	return Array.isArray(idx) ? (arr as any)[idx[0]][idx[1]] : arr[idx];
 }
 
 /**
@@ -120,17 +120,17 @@ export function getFromPosition<T, A extends T[] | T[][]>(arr: A, idx: PolylineI
  * a new point at the right position.
  */
 export function insertAtPosition<T, A extends T[] | T[][]>(arr: A, item: T, idx: number | [number, number]): A {
-    const idxArr = Array.isArray(idx) ? idx : [idx];
+	const idxArr = Array.isArray(idx) ? idx : [idx];
 
-    if (idxArr.length === 0) {
-        return arr;
-    } else if (idxArr.length === 1) {
-        return [...arr.slice(0, idxArr[0]), item, ...arr.slice(idxArr[0])] as any;
-    } else {
-        const result = [...arr];
-        result[idxArr[0]] = insertAtPosition(result[idxArr[0]] as any, item, idxArr.slice(1) as any);
-        return result as any;
-    }
+	if (idxArr.length === 0) {
+		return arr;
+	} else if (idxArr.length === 1) {
+		return [...arr.slice(0, idxArr[0]), item, ...arr.slice(idxArr[0])] as any;
+	} else {
+		const result = [...arr];
+		result[idxArr[0]] = insertAtPosition(result[idxArr[0]] as any, item, idxArr.slice(1) as any);
+		return result as any;
+	}
 }
 
 /**
@@ -142,77 +142,77 @@ export function insertAtPosition<T, A extends T[] | T[][]>(arr: A, item: T, idx:
  * to easily update a new point at the right position while the user is dragging:
  */
 export function updateAtPosition<T, A extends T[] | T[][]>(arr: A, item: T, idx: number | [number, number]): A {
-    const idxArr = Array.isArray(idx) ? idx : [idx];
+	const idxArr = Array.isArray(idx) ? idx : [idx];
 
-    if (idxArr.length === 0) {
-        return arr;
-    } else if (idxArr.length === 1) {
-        return [...arr.slice(0, idxArr[0]), item, ...arr.slice(idxArr[0] + 1)] as any;
-    } else {
-        const result = [...arr];
-        result[idxArr[0]] = updateAtPosition(result[idxArr[0]] as any, item, idxArr.slice(1) as any);
-        return result as any;
-    }
+	if (idxArr.length === 0) {
+		return arr;
+	} else if (idxArr.length === 1) {
+		return [...arr.slice(0, idxArr[0]), item, ...arr.slice(idxArr[0] + 1)] as any;
+	} else {
+		const result = [...arr];
+		result[idxArr[0]] = updateAtPosition(result[idxArr[0]] as any, item, idxArr.slice(1) as any);
+		return result as any;
+	}
 }
 
 export function removeFromPosition<A extends any[] | any[][]>(arr: A, idx: number | [number, number]): A {
-    const idxArr = Array.isArray(idx) ? idx : [idx];
+	const idxArr = Array.isArray(idx) ? idx : [idx];
 
-    if (idxArr.length === 0) {
-        return arr;
-    } else if (idxArr.length === 1) {
-        return [...arr.slice(0, idxArr[0]), ...arr.slice(idxArr[0] + 1)] as any;
-    } else {
-        const result = [...arr];
-        result[idxArr[0]] = removeFromPosition(result[idxArr[0]] as any, idxArr.slice(1) as any);
-        return result as any;
-    }
+	if (idxArr.length === 0) {
+		return arr;
+	} else if (idxArr.length === 1) {
+		return [...arr.slice(0, idxArr[0]), ...arr.slice(idxArr[0] + 1)] as any;
+	} else {
+		const result = [...arr];
+		result[idxArr[0]] = removeFromPosition(result[idxArr[0]] as any, idxArr.slice(1) as any);
+		return result as any;
+	}
 }
 
 export function setPoint(layer: L.Polyline, point: L.LatLng, idx: number | [number, number], insert: boolean) {
-    const hasRoutePoints = layer.hasDraggableLinesRoutePoints();
+	const hasRoutePoints = layer.hasDraggableLinesRoutePoints();
 
-    let points = hasRoutePoints ? layer.getDraggableLinesRoutePoints()! : layer.getLatLngs() as L.LatLng[] | L.LatLng[][];
+	let points = hasRoutePoints ? layer.getDraggableLinesRoutePoints()! : layer.getLatLngs() as L.LatLng[] | L.LatLng[][];
 
-    if (insert)
-        points = insertAtPosition(points, point, idx);
-    else
-        points = updateAtPosition(points, point, idx);
+	if (insert)
+		points = insertAtPosition(points, point, idx);
+	else
+		points = updateAtPosition(points, point, idx);
 
-    if (hasRoutePoints)
-        layer.setDraggableLinesRoutePoints(points as any);
-    else
-        layer.setLatLngs(points);
+	if (hasRoutePoints)
+		layer.setDraggableLinesRoutePoints(points as any);
+	else
+		layer.setLatLngs(points);
 }
 
 export function removePoint(layer: L.Polyline, idx: number | [number, number]) {
-    const hasRoutePoints = layer.hasDraggableLinesRoutePoints();
+	const hasRoutePoints = layer.hasDraggableLinesRoutePoints();
 
-    let points = hasRoutePoints ? layer.getDraggableLinesRoutePoints()! : layer.getLatLngs() as L.LatLng[] | L.LatLng[][];
-    points = removeFromPosition(points, idx);
+	let points = hasRoutePoints ? layer.getDraggableLinesRoutePoints()! : layer.getLatLngs() as L.LatLng[] | L.LatLng[][];
+	points = removeFromPosition(points, idx);
 
-    if (hasRoutePoints)
-        layer.setDraggableLinesRoutePoints(points as any);
-    else
-        layer.setLatLngs(points);
+	if (hasRoutePoints)
+		layer.setDraggableLinesRoutePoints(points as any);
+	else
+		layer.setLatLngs(points);
 }
 
 export function getPlusIconPoint(map: L.Map, trackPoints: L.LatLng[], distance: number, atStart: boolean) {
-    const tr = atStart ? trackPoints : [...trackPoints].reverse();
+	const tr = atStart ? trackPoints : [...trackPoints].reverse();
 
-    const point0 = map.latLngToContainerPoint(tr[0]);
-    const tr1 = tr.find((p, i) => i > 0 && point0.distanceTo(map.latLngToContainerPoint(p)) > 0);
+	const point0 = map.latLngToContainerPoint(tr[0]);
+	const tr1 = tr.find((p, i) => i > 0 && point0.distanceTo(map.latLngToContainerPoint(p)) > 0);
 
-    let result;
-    if (!tr1) {
-        result = L.point(point0.x + (atStart ? -1 : 1) * distance, point0.y);
-    } else {
-        const point1 = map.latLngToContainerPoint(tr1);
+	let result;
+	if (!tr1) {
+		result = L.point(point0.x + (atStart ? -1 : 1) * distance, point0.y);
+	} else {
+		const point1 = map.latLngToContainerPoint(tr1);
 
-        const fraction = distance / point0.distanceTo(point1);
+		const fraction = distance / point0.distanceTo(point1);
 
-        result = L.point(point0.x - fraction * (point1.x - point0.x), point0.y - fraction * (point1.y - point0.y));
-    }
+		result = L.point(point0.x - fraction * (point1.x - point0.x), point0.y - fraction * (point1.y - point0.y));
+	}
 
-    return map.containerPointToLatLng(result);
+	return map.containerPointToLatLng(result);
 }

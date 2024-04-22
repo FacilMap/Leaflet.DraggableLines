@@ -5,90 +5,90 @@ import DraggableLinesTempMarker from "./tempMarker";
 
 export default class DraggableLinesPlusMarker extends DraggableLinesMarker {
 
-    _idx: number | [number, number];
-    _tempMarker?: DraggableLinesPlusTempMarker;
-    _tempMarkerOptions: MarkerOptions;
+	_idx: number | [number, number];
+	_tempMarker?: DraggableLinesPlusTempMarker;
+	_tempMarkerOptions: MarkerOptions;
 
-    constructor(draggable: DraggableLinesHandler, layer: Polyline, latlng: LatLngExpression, idx: number | [number, number], options: MarkerOptions, tempMarkerOptions: MarkerOptions) {
-        super(draggable, layer, latlng, true, {
-            pane: "overlayPane",
-            zIndexOffset: -200000,
-            ...options
-        });
+	constructor(draggable: DraggableLinesHandler, layer: Polyline, latlng: LatLngExpression, idx: number | [number, number], options: MarkerOptions, tempMarkerOptions: MarkerOptions) {
+		super(draggable, layer, latlng, true, {
+			pane: "overlayPane",
+			zIndexOffset: -200000,
+			...options
+		});
 
-        this._idx = idx;
-        this._tempMarkerOptions = tempMarkerOptions;
-    }
+		this._idx = idx;
+		this._tempMarkerOptions = tempMarkerOptions;
+	}
 
-    onAdd(map: Map) {
-        super.onAdd(map);
+	onAdd(map: Map) {
+		super.onAdd(map);
 
-        this.on('mouseover', this.handleMouseOver, this);
+		this.on('mouseover', this.handleMouseOver, this);
 
-        return this;
-    }
+		return this;
+	}
 
-    onRemove(map: Map) {
-        super.onRemove(map);
+	onRemove(map: Map) {
+		super.onRemove(map);
 
-        if (this._tempMarker) {
-            this._tempMarker.remove();
-            delete this._tempMarker;
-        }
-        
-        return this;
-    }
+		if (this._tempMarker) {
+			this._tempMarker.remove();
+			delete this._tempMarker;
+		}
 
-    getIdx() {
-        return this._idx;
-    }
+		return this;
+	}
 
-    handleMouseOver(e: LeafletMouseEvent) {
-        this._draggable.removeTempMarker();
+	getIdx() {
+		return this._idx;
+	}
 
-        this._tempMarker = new DraggableLinesPlusTempMarker(this._draggable, this._layer, this, e.latlng, this.getIdx(), this._tempMarkerOptions).addTo(this._map)
-        this._draggable._tempMarker = this._tempMarker;
-    }
+	handleMouseOver(e: LeafletMouseEvent) {
+		this._draggable.removeTempMarker();
+
+		this._tempMarker = new DraggableLinesPlusTempMarker(this._draggable, this._layer, this, e.latlng, this.getIdx(), this._tempMarkerOptions).addTo(this._map)
+		this._draggable._tempMarker = this._tempMarker;
+	}
 
 }
 
 export class DraggableLinesPlusTempMarker extends DraggableLinesTempMarker {
-    
-    _plusMarker: DraggableLinesPlusMarker;
-    _idx: number | [number, number];
 
-    constructor(draggable: DraggableLinesHandler, layer: Polyline, plusMarker: DraggableLinesPlusMarker, latlng: LatLngExpression, idx: number | [number, number], options: MarkerOptions) {
-        super(draggable, layer, latlng, options);
+	_plusMarker: DraggableLinesPlusMarker;
+	_idx: number | [number, number];
 
-        this._plusMarker = plusMarker;
-        this._idx = idx;
-    }
+	constructor(draggable: DraggableLinesHandler, layer: Polyline, plusMarker: DraggableLinesPlusMarker, latlng: LatLngExpression, idx: number | [number, number], options: MarkerOptions) {
+		super(draggable, layer, latlng, options);
 
-    getIdx() {
-        return this._idx;
-    }
+		this._plusMarker = plusMarker;
+		this._idx = idx;
+	}
 
-    shouldRemove(latlng: LatLng) {
-        const layerPoint = this._map.latLngToLayerPoint(latlng);
-        const position = DomUtil.getPosition(this._plusMarker._icon);
-        return Math.abs(position.y - layerPoint.y) > this._plusMarker._icon.offsetHeight / 2
-            || Math.abs(position.x - layerPoint.x) > this._plusMarker._icon.offsetWidth / 2;
-    }
+	getIdx() {
+		return this._idx;
+	}
 
-    getRenderPoint() {
-        return this.getLatLng();
-    }
+	shouldRemove(latlng: LatLng) {
+		const layerPoint = this._map.latLngToLayerPoint(latlng);
+		const position = DomUtil.getPosition(this._plusMarker._icon);
+		return Math.abs(position.y - layerPoint.y) > this._plusMarker._icon.offsetHeight / 2
+			|| Math.abs(position.x - layerPoint.x) > this._plusMarker._icon.offsetWidth / 2;
+	}
 
-    fireMouseOver() {
-        this._draggable.fire("plusmouseover", { layer: this._layer, idx: this.getIdx(), marker: this, plusMarker: this._plusMarker });
-    }
+	getRenderPoint() {
+		return this.getLatLng();
+	}
+
+	fireMouseOver() {
+		this._draggable.fire("plusmouseover", { layer: this._layer, idx: this.getIdx(), marker: this, plusMarker: this._plusMarker });
+	}
 
 
-    fireMouseMove() {
-    }
+	fireMouseMove() {
+	}
 
-    fireMouseOut() {
-        this._draggable.fire("plusmouseout", { layer: this._layer, idx: this.getIdx(), marker: this, plusMarker: this._plusMarker });
-    }
+	fireMouseOut() {
+		this._draggable.fire("plusmouseout", { layer: this._layer, idx: this.getIdx(), marker: this, plusMarker: this._plusMarker });
+	}
 
 }
