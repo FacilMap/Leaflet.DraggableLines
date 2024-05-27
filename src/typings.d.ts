@@ -1,9 +1,14 @@
 declare module "*.svg" {
-	const dataUrl: string;
-	export default dataUrl;
+	const url: string;
+	export default url;
+}
+
+declare module "*?raw" {
+	const content: string;
+	export default content;
 }
 
 declare module "*.png" {
-	const dataUrl: string;
-	export default dataUrl;
+	const url: string;
+	export default url;
 }
