@@ -24,7 +24,14 @@ export function createDefaultMarkerIconSrc(colors: Record<string, string>) {
 
 export function createDefaultMarkerIcon(colors: Record<string, string>) {
 	const url = createSvgDataUrl(createDefaultMarkerIconSrc(colors));
-	return new Icon.Default({ imagePath: new String('') as string, iconUrl: url, iconRetinaUrl: url, shadowUrl: markerShadowUrl }) as Icon;
+	return new Icon.Default({
+		// Icon.Default uses `this.options.imagePath || IconDefault.imagePath` as the prefix for the icon URL.
+		// new String('') is an empty string that is truthy, resulting in an empty prefix (which we want for the data URL).
+		imagePath: new String('') as string,
+		iconUrl: url,
+		iconRetinaUrl: url,
+		shadowUrl: markerShadowUrl
+	}) as Icon;
 }
 
 export const defaultIcon = createDefaultMarkerIcon({ color1: "#2e6c97", color2: "#3883b7", color3: "#126fc6", color4: "#4c9cd1" });
