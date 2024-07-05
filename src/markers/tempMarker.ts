@@ -3,7 +3,7 @@ import DraggableLinesHandler from "../handler";
 import { locateOnLine, getRouteInsertPosition, setPoint, PolylineIndex } from "../utils";
 import DraggableLinesMarker from "./marker";
 
-function createIcon(layer: Polyline, baseIcon: Icon | DivIcon) {
+function createIcon(layer: Polyline | Polygon, baseIcon: Icon | DivIcon) {
 	const icon = Util.create(baseIcon);
 	const _setIconStyles = icon._setIconStyles;
 	icon._setIconStyles = (img: HTMLImageElement, name: string) => {
@@ -29,7 +29,7 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
 
 	renderPoint?: RenderPoint;
 
-	constructor(draggable: DraggableLinesHandler, layer: Polyline, latlng: LatLngExpression, options: MarkerOptions) {
+	constructor(draggable: DraggableLinesHandler, layer: Polyline | Polygon, latlng: LatLngExpression, options: MarkerOptions) {
 		super(draggable, layer, latlng, true, {
 			draggable: true,
 			zIndexOffset: -100000,

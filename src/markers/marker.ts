@@ -1,17 +1,17 @@
-import { LatLng, LatLngExpression, LeafletEvent, Map, Marker, MarkerOptions, Polyline } from "leaflet";
+import { LatLng, LatLngExpression, LeafletEvent, Map, Marker, MarkerOptions, Polygon, Polyline } from "leaflet";
 import DraggableLinesHandler from "../handler";
 import { PolylineIndex, setPoint } from "../utils";
 
 export default abstract class DraggableLinesMarker extends Marker {
 
 	_draggable: DraggableLinesHandler;
-	_layer: Polyline;
+	_layer: Polyline | Polygon;
 	_isInsert: boolean;
 
 	_dragIdx?: number | [number, number];
 	_dragFrom?: LatLng;
 
-	constructor(draggable: DraggableLinesHandler, layer: Polyline, latlng: LatLngExpression, isInsert: boolean, options?: MarkerOptions) {
+	constructor(draggable: DraggableLinesHandler, layer: Polyline | Polygon, latlng: LatLngExpression, isInsert: boolean, options?: MarkerOptions) {
 		super(latlng, options);
 
 		this._draggable = draggable;

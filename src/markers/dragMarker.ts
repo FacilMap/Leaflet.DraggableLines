@@ -9,7 +9,7 @@ export default class DraggableLinesDragMarker extends DraggableLinesMarker {
 	_removeOnClick: boolean;
 	_over = false;
 
-	constructor(draggable: DraggableLinesHandler, layer: Polyline, latlng: LatLngExpression, idx: number | [number, number], options: MarkerOptions, removeOnClick: boolean) {
+	constructor(draggable: DraggableLinesHandler, layer: Polyline | Polygon, latlng: LatLngExpression, idx: number | [number, number], options: MarkerOptions, removeOnClick: boolean) {
 		super(draggable, layer, latlng, false, {
 			draggable: true,
 			...options

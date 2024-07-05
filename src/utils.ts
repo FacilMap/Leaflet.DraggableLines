@@ -169,7 +169,7 @@ export function removeFromPosition<A extends any[] | any[][]>(arr: A, idx: numbe
 	}
 }
 
-export function setPoint(layer: L.Polyline, point: L.LatLng, idx: number | [number, number], insert: boolean) {
+export function setPoint(layer: L.Polyline | L.Polygon, point: L.LatLng, idx: number | [number, number], insert: boolean) {
 	const hasRoutePoints = layer.hasDraggableLinesRoutePoints();
 
 	let points = hasRoutePoints ? layer.getDraggableLinesRoutePoints()! : layer.getLatLngs() as L.LatLng[] | L.LatLng[][];
@@ -185,7 +185,7 @@ export function setPoint(layer: L.Polyline, point: L.LatLng, idx: number | [numb
 		layer.setLatLngs(points);
 }
 
-export function removePoint(layer: L.Polyline, idx: number | [number, number]) {
+export function removePoint(layer: L.Polyline | L.Polygon, idx: number | [number, number]) {
 	const hasRoutePoints = layer.hasDraggableLinesRoutePoints();
 
 	let points = hasRoutePoints ? layer.getDraggableLinesRoutePoints()! : layer.getLatLngs() as L.LatLng[] | L.LatLng[][];
