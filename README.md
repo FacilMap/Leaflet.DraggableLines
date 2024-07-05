@@ -309,3 +309,12 @@ Polyline and its subclasses.
 * `draggableLines-setLatLngs`: Fired after the points of this layer are updated using the `setLatLngs()` method.
 * `draggableLines-setRoutePoints`: Fired after the `draggableLinesRoutePoints` option is updated using the
   `setDraggableLinesRoutePoints` method.
+
+## Usage with rectangles
+
+`L.Rectangle` is a sub-class of `L.Polygon`, so it is made draggable by default. Since rectangles are a special type of polygon, their behaviour differs in the following ways:
+* Rectangles always have 4 drag markers corresponding to their corners. Their indexes are `0` (south-west), `1` (north-west), `2` (north-east) and `3` (south-east).
+* Dragging any of the drag markers will keep the shape rectangular, so it will affect the positions of one or two other drag markers.
+* It is not possible to insert additional waypoints by clicking the border of the rectangle. No temporary drag marker is shown on hover.
+* It is not possible to remove waypoints from rectangles. Nothing will happen when clicking the drag markers, even when `removeOnClick` is set to true.
+* The `draggableLinesRoutePoints` option is ignored for rectangles.

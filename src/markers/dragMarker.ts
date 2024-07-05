@@ -1,4 +1,4 @@
-import { Draggable, LatLng, LatLngExpression, Map, MarkerOptions, Polygon, Polyline } from "leaflet";
+import { Draggable, LatLng, LatLngExpression, Map, MarkerOptions, Polygon, Polyline, Rectangle } from "leaflet";
 import DraggableLinesHandler from "../handler";
 import { removePoint } from "../utils";
 import DraggableLinesMarker from "./marker";
@@ -25,7 +25,7 @@ export default class DraggableLinesDragMarker extends DraggableLinesMarker {
 		const latlngs = this._layer.getDraggableLinesRoutePoints() || (this._layer.getLatLngs() as LatLng[] | LatLng[][]);
 		const points = Array.isArray(this._idx) ? (latlngs as LatLng[][])[this._idx[0]] : (latlngs as LatLng[]);
 
-		if (this._removeOnClick && points.length > (this._layer instanceof Polygon ? 3 : 2)) {
+		if (this._removeOnClick && !(this._layer instanceof Rectangle) && points.length > (this._layer instanceof Polygon ? 3 : 2)) {
 			this.on('click', this.handleClick);
 		}
 

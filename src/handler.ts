@@ -1,4 +1,4 @@
-import { Draggable, Evented, Handler, LatLng, Layer, LeafletEvent, LeafletMouseEvent, LineUtil, Map, MarkerOptions, Polygon, Polyline } from 'leaflet';
+import { Draggable, Evented, Handler, LatLng, Layer, LeafletEvent, LeafletMouseEvent, LineUtil, Map, MarkerOptions, Polygon, Polyline, Rectangle } from 'leaflet';
 import { defaultIcon, endIcon, plusIcon, startIcon } from './markers/icons';
 import DraggableLinesDragMarker from './markers/dragMarker';
 import DraggableLinesPlusMarker from './markers/plusMarker';
@@ -82,7 +82,8 @@ export default class DraggableLinesHandler extends (() => {
 
 	handleLayerSetLatLngs = (e: LeafletEvent) => {
 		const layer = e.target as Polyline | Polygon;
-		if (!Draggable._dragging) {
+		// For rectangles we need to update the drag markers even while dragging, since dragging one will move others.
+		if (!Draggable._dragging || e.target instanceof Rectangle) {
 			this.removeTempMarker();
 
 			if (layer._draggableLines) {
@@ -96,6 +97,24 @@ export default class DraggableLinesHandler extends (() => {
 	drawDragMarkers(layer: Polyline | Polygon) {
 		if (!layer._draggableLines)
 			return;
+
+		if (layer instanceof Rectangle) {
+			// For rectangles, this function is also called continuously while dragging (because dragging a marker affects the positions
+			// of others). Hence we cannot remove and re-add the markers, but we need to update their positions.
+			const bounds = layer.getBounds();
+			const latLngs = [bounds.getSouthWest(), bounds.getNorthWest(), bounds.getNorthEast(), bounds.getSouthEast()];
+			for (let i = 0; i < latLngs.length; i++) {
+				if (layer._draggableLines.dragMarkers[i]) {
+					layer._draggableLines.dragMarkers[i].setLatLng(latLngs[i]);
+				} else {
+					layer._draggableLines.dragMarkers[i] = new DraggableLinesDragMarker(this, layer, latLngs[i], i, {
+						icon: defaultIcon,
+						...this.options.dragMarkerOptions?.(layer, i, latLngs.length)
+					}, false).addTo(this._map);
+				}
+			}
+			return;
+		}
 
 		this.removeDragMarkers(layer);
 
@@ -176,6 +195,10 @@ export default class DraggableLinesHandler extends (() => {
 
 	drawTempMarker(layer: Polyline | Polygon, latlng: LatLng) {
 		this.removeTempMarker();
+
+		if (layer instanceof Rectangle) {
+			return;
+		}
 
 		const options = {
 			icon: defaultIcon,

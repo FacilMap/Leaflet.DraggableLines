@@ -1,16 +1,28 @@
-import { latLng, LatLngExpression, Polyline } from "leaflet";
+import { latLng, LatLngExpression, Polyline, Rectangle } from "leaflet";
 
 Polyline.prototype.hasDraggableLinesRoutePoints = function() {
-	return this.options.draggableLinesRoutePoints != null;
+	if (this instanceof Rectangle) {
+		return false;
+	} else {
+		return this.options.draggableLinesRoutePoints != null;
+	}
 };
 
 Polyline.prototype.getDraggableLinesRoutePoints = function() {
-	return this.options.draggableLinesRoutePoints?.map((p) => latLng(p));
+	if (this instanceof Rectangle) {
+		return undefined;
+	} else {
+		return this.options.draggableLinesRoutePoints?.map((p) => latLng(p));
+	}
 };
 
 Polyline.prototype.setDraggableLinesRoutePoints = function(routePoints: LatLngExpression[] | undefined) {
-	this.options.draggableLinesRoutePoints = routePoints;
-	this.fire('draggableLines-setRoutePoints');
+	if (this instanceof Rectangle) {
+		return;
+	} else {
+		this.options.draggableLinesRoutePoints = routePoints;
+		this.fire('draggableLines-setRoutePoints');
+	}
 };
 
 const setLatLngsBkp = Polyline.prototype.setLatLngs;

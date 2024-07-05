@@ -170,6 +170,23 @@ export function removeFromPosition<A extends any[] | any[][]>(arr: A, idx: numbe
 }
 
 export function setPoint(layer: L.Polyline | L.Polygon, point: L.LatLng, idx: number | [number, number], insert: boolean) {
+	if (layer instanceof L.Rectangle) {
+		// L.Rectangle extends L.Polygon. By default, it contains 4 points, [0, 0] (SW), [0, 1] (NW), [0, 2] (NE), [0, 3] (SE).
+		// However, we manually create drag markers with indexes 0 (SW), 1 (NW), 2 (NE), 3 (SE) in DraggableLinesHandler.drawDragMarkers()
+		// instead of relying on layer.getLatLngs().
+		const i = Array.isArray(idx) ? idx[1] : idx;
+		if (i === 0) { // south-west
+			layer.setBounds(L.latLngBounds(point, layer.getBounds().getNorthEast()));
+		} else if (i === 1) { // north-west
+			layer.setBounds(L.latLngBounds(point, layer.getBounds().getSouthEast()));
+		} else if (i === 2) { // north-east
+			layer.setBounds(L.latLngBounds(point, layer.getBounds().getSouthWest()));
+		} else if (i === 3) { // south-east
+			layer.setBounds(L.latLngBounds(point, layer.getBounds().getNorthWest()));
+		}
+		return;
+	}
+
 	const hasRoutePoints = layer.hasDraggableLinesRoutePoints();
 
 	let points = hasRoutePoints ? layer.getDraggableLinesRoutePoints()! : layer.getLatLngs() as L.LatLng[] | L.LatLng[][];
@@ -186,6 +203,10 @@ export function setPoint(layer: L.Polyline | L.Polygon, point: L.LatLng, idx: nu
 }
 
 export function removePoint(layer: L.Polyline | L.Polygon, idx: number | [number, number]) {
+	if (layer instanceof L.Rectangle) {
+		return;
+	}
+
 	const hasRoutePoints = layer.hasDraggableLinesRoutePoints();
 
 	let points = hasRoutePoints ? layer.getDraggableLinesRoutePoints()! : layer.getLatLngs() as L.LatLng[] | L.LatLng[][];

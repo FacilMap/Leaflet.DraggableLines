@@ -26,7 +26,7 @@
 
 		<script type="module">
 			import * as L from 'leaflet';
-			import { HighlightablePolygon, HighlightablePolyline } from 'leaflet-highlightable-layers';
+			import { HighlightableCircle, HighlightableCircleMarker, HighlightablePolygon, HighlightablePolyline, HighlightableRectangle } from 'leaflet-highlightable-layers';
 			import DraggableLines from 'leaflet-draggable-lines';
 
 			var map = L.map('map',{
@@ -42,6 +42,10 @@
 				[[53.09897, 12.02728], [52.01701, 14.18884]],
 				[[52.93871, 11.92566], [52.73629, 12.57935]]
 		 	], { color: '#0000ff', weight: 10 }).addTo(map);
+
+			new HighlightableCircle([52.34463, 11.68121], { radius: 20000, color: "#ffff00" }).addTo(map);
+			new HighlightableCircleMarker([53, 13], { radius: 20, color: "#ffff00" }).addTo(map);
+			new HighlightableRectangle([[52.91056, 14.40308], [52.63806, 15.0705]], { color: "#ffaaaa" }).addTo(map);
 
 			const draggable = new DraggableLines(map);
 			draggable.enable();
