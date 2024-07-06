@@ -175,14 +175,15 @@ export function setPoint(layer: L.Polyline | L.Polygon, point: L.LatLng, idx: nu
 		// However, we manually create drag markers with indexes 0 (SW), 1 (NW), 2 (NE), 3 (SE) in DraggableLinesHandler.drawDragMarkers()
 		// instead of relying on layer.getLatLngs().
 		const i = Array.isArray(idx) ? idx[1] : idx;
+		const bounds = layer.getBounds();
 		if (i === 0) { // south-west
-			layer.setBounds(L.latLngBounds(point, layer.getBounds().getNorthEast()));
+			layer.setBounds(L.latLngBounds([Math.min(point.lat, bounds.getNorth()), Math.min(point.lng, bounds.getEast())], bounds.getNorthEast()));
 		} else if (i === 1) { // north-west
-			layer.setBounds(L.latLngBounds(point, layer.getBounds().getSouthEast()));
+			layer.setBounds(L.latLngBounds([Math.max(point.lat, bounds.getSouth()), Math.min(point.lng, bounds.getEast())], bounds.getSouthEast()));
 		} else if (i === 2) { // north-east
-			layer.setBounds(L.latLngBounds(point, layer.getBounds().getSouthWest()));
+			layer.setBounds(L.latLngBounds([Math.max(point.lat, bounds.getSouth()), Math.max(point.lng, bounds.getWest())], bounds.getSouthWest()));
 		} else if (i === 3) { // south-east
-			layer.setBounds(L.latLngBounds(point, layer.getBounds().getNorthWest()));
+			layer.setBounds(L.latLngBounds([Math.min(point.lat, bounds.getNorth()), Math.max(point.lng, bounds.getWest())], bounds.getNorthWest()));
 		}
 		return;
 	}
