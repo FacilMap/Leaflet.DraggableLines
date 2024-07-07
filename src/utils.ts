@@ -4,6 +4,18 @@ export type PolylineIndex = number | [number, number];
 
 export type SupportedLayer = L.Polyline | L.Polygon;
 
+export type LayerFilter<Args extends any[] = []> = boolean | SupportedLayer | SupportedLayer[] | ((layer: SupportedLayer, ...args: Args) => boolean);
+export function matchesLayerFilter<Args extends any[]>(layer: SupportedLayer, filter: LayerFilter<Args>, ...args: NoInfer<Args>): boolean {
+	if (typeof filter === "function")
+		return filter(layer, ...args);
+	else if (typeof filter === "boolean")
+		return filter;
+	else if (Array.isArray(filter))
+		return filter.includes(layer);
+	else
+		return filter === layer;
+}
+
 /**
  * Finds the closest position to the given point(s) on the given polyline.
  * The position is given in the form of a fractional index. The index is a float somewhere between the integer index of point A

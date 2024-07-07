@@ -174,7 +174,8 @@ You can pass the following options as the second parameter to `DraggableLines`:
   pane behind all other markers.
 * `allowExtendingLine`: If `true` (default), users are allowed to drag the line in a way that adds additional points before the first
   point and after the last point. This will add draggable plus icons before the start and after the end of each line. Has no effect
-  on Polygons.
+  on Polygons. Instead of a boolean, you can also specify a layer object, an array of layer objects or a `(layer) => boolean` callback.
+* `removeOnClick`: If `true` (default), points are removed when clicking them. If a polyline has only 2 points or a polygon only 3, clicking will have no effect. Instead of a boolean, you can also specify a layer object, an array of layer objects or a `(layer, idx) => boolean` callback.
 
 **Note:** If you want to enable dragging behaviour without showing any drag markers, you need to pass an invisible icon with the
 dimensions of the desired draggable areas.

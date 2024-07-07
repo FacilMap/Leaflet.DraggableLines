@@ -3,16 +3,16 @@ import { defaultIcon, endIcon, plusIcon, startIcon } from './markers/icons';
 import DraggableLinesDragMarker from './markers/dragMarker';
 import DraggableLinesPlusMarker from './markers/plusMarker';
 import DraggableLinesTempMarker from './markers/tempMarker';
-import { getPlusIconPoint, locateOnLine, SupportedLayer } from './utils';
+import { getPlusIconPoint, LayerFilter, locateOnLine, matchesLayerFilter, PolylineIndex, SupportedLayer } from './utils';
 
 export interface DraggableLinesHandlerOptions {
-	enableForLayer?: boolean | SupportedLayer | SupportedLayer[] | ((layer: SupportedLayer) => boolean);
+	enableForLayer?: LayerFilter;
 	dragMarkerOptions?: (layer: SupportedLayer, i: number, length: number) => MarkerOptions;
 	tempMarkerOptions?: (layer: SupportedLayer) => MarkerOptions;
 	plusMarkerOptions?: (layer: SupportedLayer, isStart: boolean) => MarkerOptions;
 	plusTempMarkerOptions?: (layer: SupportedLayer, isStart: boolean) => MarkerOptions;
-	allowExtendingLine?: boolean;
-	removeOnClick?: boolean;
+	allowExtendingLine?: LayerFilter;
+	removeOnClick?: LayerFilter<[PolylineIndex]>;
 }
 
 export default class DraggableLinesHandler extends (() => {
@@ -23,7 +23,7 @@ export default class DraggableLinesHandler extends (() => {
 	Object.assign(HandlerAndEvented.prototype, Evented.prototype);
 	return HandlerAndEvented as any as new (map: Map) => Handler & Evented;
 })() {
-	options: DraggableLinesHandlerOptions;
+	options: DraggableLinesHandlerOptions & Required<Pick<DraggableLinesHandlerOptions, "enableForLayer" | "allowExtendingLine" | "removeOnClick">>;
 
 	_tempMarker?: DraggableLinesTempMarker;
 
@@ -53,14 +53,7 @@ export default class DraggableLinesHandler extends (() => {
 	}
 
 	shouldEnableForLayer(layer: Polyline) {
-		if (typeof this.options.enableForLayer === "function")
-			return this.options.enableForLayer(layer);
-		else if (typeof this.options.enableForLayer === "boolean")
-			return this.options.enableForLayer;
-		else if (Array.isArray(this.options.enableForLayer))
-			return this.options.enableForLayer.includes(layer);
-		else
-			return this.options.enableForLayer === layer;
+		return matchesLayerFilter(layer, this.options.enableForLayer);
 	}
 
 	handleLayerAdd = (e: { layer: Layer }) => {
@@ -125,7 +118,7 @@ export default class DraggableLinesHandler extends (() => {
 			for (let j = 0; j < routePoints[i].length; j++) {
 				const idx = isFlat ? j : [i, j] as [number, number];
 
-				let removeOnClick = this.options.removeOnClick!;
+				let removeOnClick = matchesLayerFilter(layer, this.options.removeOnClick, idx);
 				const options = {
 					icon: layer instanceof Polygon ? defaultIcon : (j == 0 ? startIcon : j == routePoints[i].length - 1 ? endIcon : defaultIcon),
 					...this.options.dragMarkerOptions?.(layer, j, routePoints[i].length)
@@ -149,7 +142,7 @@ export default class DraggableLinesHandler extends (() => {
 	drawPlusMarkers(layer: SupportedLayer) {
 		this.removePlusMarkers(layer);
 
-		if (layer instanceof Polygon || !layer._draggableLines || !this.options.allowExtendingLine)
+		if (layer instanceof Polygon || !layer._draggableLines || !matchesLayerFilter(layer, this.options.allowExtendingLine))
 			return;
 
 		const latlngs = layer.getLatLngs() as LatLng[] | LatLng[][];
