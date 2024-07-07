@@ -2,6 +2,7 @@ import { DomUtil, LatLng, LatLngExpression, LeafletMouseEvent, Map, MarkerOption
 import DraggableLinesHandler from "../handler";
 import DraggableLinesMarker from "./marker";
 import DraggableLinesTempMarker from "./tempMarker";
+import { SupportedLayer } from "../utils";
 
 export default class DraggableLinesPlusMarker extends DraggableLinesMarker {
 
@@ -9,7 +10,7 @@ export default class DraggableLinesPlusMarker extends DraggableLinesMarker {
 	_tempMarker?: DraggableLinesPlusTempMarker;
 	_tempMarkerOptions: MarkerOptions;
 
-	constructor(draggable: DraggableLinesHandler, layer: Polyline | Polygon, latlng: LatLngExpression, idx: number | [number, number], options: MarkerOptions, tempMarkerOptions: MarkerOptions) {
+	constructor(draggable: DraggableLinesHandler, layer: SupportedLayer, latlng: LatLngExpression, idx: number | [number, number], options: MarkerOptions, tempMarkerOptions: MarkerOptions) {
 		super(draggable, layer, latlng, true, {
 			pane: "overlayPane",
 			zIndexOffset: -200000,
@@ -57,7 +58,7 @@ export class DraggableLinesPlusTempMarker extends DraggableLinesTempMarker {
 	_plusMarker: DraggableLinesPlusMarker;
 	_idx: number | [number, number];
 
-	constructor(draggable: DraggableLinesHandler, layer: Polyline | Polygon, plusMarker: DraggableLinesPlusMarker, latlng: LatLngExpression, idx: number | [number, number], options: MarkerOptions) {
+	constructor(draggable: DraggableLinesHandler, layer: SupportedLayer, plusMarker: DraggableLinesPlusMarker, latlng: LatLngExpression, idx: number | [number, number], options: MarkerOptions) {
 		super(draggable, layer, latlng, options);
 
 		this._plusMarker = plusMarker;

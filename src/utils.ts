@@ -2,6 +2,8 @@ import * as L from "leaflet";
 
 export type PolylineIndex = number | [number, number];
 
+export type SupportedLayer = L.Polyline | L.Polygon;
+
 /**
  * Finds the closest position to the given point(s) on the given polyline.
  * The position is given in the form of a fractional index. The index is a float somewhere between the integer index of point A

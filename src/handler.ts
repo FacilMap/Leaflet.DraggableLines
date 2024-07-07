@@ -3,14 +3,14 @@ import { defaultIcon, endIcon, plusIcon, startIcon } from './markers/icons';
 import DraggableLinesDragMarker from './markers/dragMarker';
 import DraggableLinesPlusMarker from './markers/plusMarker';
 import DraggableLinesTempMarker from './markers/tempMarker';
-import { getPlusIconPoint, locateOnLine } from './utils';
+import { getPlusIconPoint, locateOnLine, SupportedLayer } from './utils';
 
 export interface DraggableLinesHandlerOptions {
-	enableForLayer?: boolean | Polyline | Polygon | Array<Polyline | Polygon> | ((layer: Polyline | Polygon) => boolean);
-	dragMarkerOptions?: (layer: Polyline | Polygon, i: number, length: number) => MarkerOptions;
-	tempMarkerOptions?: (layer: Polyline | Polygon) => MarkerOptions;
-	plusMarkerOptions?: (layer: Polyline | Polygon, isStart: boolean) => MarkerOptions;
-	plusTempMarkerOptions?: (layer: Polyline | Polygon, isStart: boolean) => MarkerOptions;
+	enableForLayer?: boolean | SupportedLayer | SupportedLayer[] | ((layer: SupportedLayer) => boolean);
+	dragMarkerOptions?: (layer: SupportedLayer, i: number, length: number) => MarkerOptions;
+	tempMarkerOptions?: (layer: SupportedLayer) => MarkerOptions;
+	plusMarkerOptions?: (layer: SupportedLayer, isStart: boolean) => MarkerOptions;
+	plusTempMarkerOptions?: (layer: SupportedLayer, isStart: boolean) => MarkerOptions;
 	allowExtendingLine?: boolean;
 	removeOnClick?: boolean;
 }
@@ -77,11 +77,11 @@ export default class DraggableLinesHandler extends (() => {
 		if (Draggable._dragging)
 			return;
 
-		this.drawTempMarker(e.target as Polyline | Polygon, e.latlng);
+		this.drawTempMarker(e.target as SupportedLayer, e.latlng);
 	};
 
 	handleLayerSetLatLngs = (e: LeafletEvent) => {
-		const layer = e.target as Polyline | Polygon;
+		const layer = e.target as SupportedLayer;
 		// For rectangles we need to update the drag markers even while dragging, since dragging one will move others.
 		if (!Draggable._dragging || e.target instanceof Rectangle) {
 			this.removeTempMarker();
@@ -94,7 +94,7 @@ export default class DraggableLinesHandler extends (() => {
 		}
 	};
 
-	drawDragMarkers(layer: Polyline | Polygon) {
+	drawDragMarkers(layer: SupportedLayer) {
 		if (!layer._draggableLines)
 			return;
 
@@ -136,7 +136,7 @@ export default class DraggableLinesHandler extends (() => {
 		}
 	}
 
-	removeDragMarkers(layer: Polyline | Polygon) {
+	removeDragMarkers(layer: SupportedLayer) {
 		if (!layer._draggableLines)
 			return;
 
@@ -146,7 +146,7 @@ export default class DraggableLinesHandler extends (() => {
 		layer._draggableLines.dragMarkers = [];
 	}
 
-	drawPlusMarkers(layer: Polyline | Polygon) {
+	drawPlusMarkers(layer: SupportedLayer) {
 		this.removePlusMarkers(layer);
 
 		if (layer instanceof Polygon || !layer._draggableLines || !this.options.allowExtendingLine)
@@ -183,7 +183,7 @@ export default class DraggableLinesHandler extends (() => {
 		}
 	}
 
-	removePlusMarkers(layer: Polyline | Polygon) {
+	removePlusMarkers(layer: SupportedLayer) {
 		if (!layer._draggableLines)
 			return;
 
@@ -193,7 +193,7 @@ export default class DraggableLinesHandler extends (() => {
 		layer._draggableLines.plusMarkers = [];
 	}
 
-	drawTempMarker(layer: Polyline | Polygon, latlng: LatLng) {
+	drawTempMarker(layer: SupportedLayer, latlng: LatLng) {
 		this.removeTempMarker();
 
 		if (layer instanceof Rectangle) {
@@ -214,7 +214,7 @@ export default class DraggableLinesHandler extends (() => {
 		}
 	}
 
-	enableForLayer(layer: Polyline | Polygon) {
+	enableForLayer(layer: SupportedLayer) {
 		if (layer._draggableLines)
 			return;
 
@@ -234,7 +234,7 @@ export default class DraggableLinesHandler extends (() => {
 		this.drawPlusMarkers(layer);
 	}
 
-	redrawForLayer(layer: Polyline | Polygon) {
+	redrawForLayer(layer: SupportedLayer) {
 		if (!layer._draggableLines)
 			return;
 
@@ -245,7 +245,7 @@ export default class DraggableLinesHandler extends (() => {
 			this.drawTempMarker(layer, this._tempMarker.getLatLng());
 	}
 
-	disableForLayer(layer: Polyline | Polygon) {
+	disableForLayer(layer: SupportedLayer) {
 		layer.off("mouseover", this.handleLayerMouseOver);
 		layer.off("draggableLines-setLatLngs", this.handleLayerSetLatLngs);
 		layer.off("draggableLines-setRoutePoints", this.handleLayerSetLatLngs);
@@ -271,7 +271,7 @@ export default class DraggableLinesHandler extends (() => {
 		});
 	}
 
-	_getRoutePointIndexes(layer: Polyline | Polygon): number[] | undefined {
+	_getRoutePointIndexes(layer: SupportedLayer): number[] | undefined {
 		if (!layer._draggableLines) {
 			return undefined;
 		} else if (!layer._draggableLines.routePointIndexes) {
