@@ -172,10 +172,14 @@ You can pass the following options as the second parameter to `DraggableLines`:
   plus markers. Receives 2 arguments: the Polyline layer and a boolean that is `true` if the marker is at the start of the line or
   `false` if it is at the end. By default, renders a green marker at the start of the line and a red marker at the end, on the marker
   pane behind all other markers.
+* `allowDraggingLine`: If `true` (default), users are allowed to insert new line points by hovering and then dragging the line or by
+  clicking it. Instead of a boolean, you can also specify a layer object, an array of layer objects or a `(layer) => boolean` callback.
 * `allowExtendingLine`: If `true` (default), users are allowed to drag the line in a way that adds additional points before the first
   point and after the last point. This will add draggable plus icons before the start and after the end of each line. Has no effect
   on Polygons. Instead of a boolean, you can also specify a layer object, an array of layer objects or a `(layer) => boolean` callback.
-* `removeOnClick`: If `true` (default), points are removed when clicking them. If a polyline has only 2 points or a polygon only 3, clicking will have no effect. Instead of a boolean, you can also specify a layer object, an array of layer objects or a `(layer, idx) => boolean` callback.
+* `removeOnClick`: If `true` (default), points are removed when clicking them. If a polyline has only 2 points or a polygon only 3, clicking
+  will have no effect. Instead of a boolean, you can also specify a layer object, an array of layer objects or a `(layer, idx) => boolean`
+  callback.
 
 **Note:** If you want to enable dragging behaviour without showing any drag markers, you need to pass an invisible icon with the
 dimensions of the desired draggable areas.
@@ -316,6 +320,6 @@ Polyline and its subclasses.
 `L.Rectangle` is a sub-class of `L.Polygon`, so it is made draggable by default. Since rectangles are a special type of polygon, their behaviour differs in the following ways:
 * Rectangles always have 4 drag markers corresponding to their corners. Their indexes are `0` (south-west), `1` (north-west), `2` (north-east) and `3` (south-east).
 * Dragging any of the drag markers will keep the shape rectangular, so it will affect the positions of one or two other drag markers.
-* It is not possible to insert additional waypoints by clicking the border of the rectangle. No temporary drag marker is shown on hover.
+* It is not possible to insert additional waypoints by clicking the border of the rectangle. No temporary drag marker is shown on hover, even when `allowDraggingLine` is set to true.
 * It is not possible to remove waypoints from rectangles. Nothing will happen when clicking the drag markers, even when `removeOnClick` is set to true.
 * The `draggableLinesRoutePoints` option is ignored for rectangles.

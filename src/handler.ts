@@ -11,6 +11,7 @@ export interface DraggableLinesHandlerOptions {
 	tempMarkerOptions?: (layer: SupportedLayer) => MarkerOptions;
 	plusMarkerOptions?: (layer: SupportedLayer, isStart: boolean) => MarkerOptions;
 	plusTempMarkerOptions?: (layer: SupportedLayer, isStart: boolean) => MarkerOptions;
+	allowDraggingLine?: LayerFilter;
 	allowExtendingLine?: LayerFilter;
 	removeOnClick?: LayerFilter<[PolylineIndex]>;
 }
@@ -23,7 +24,7 @@ export default class DraggableLinesHandler extends (() => {
 	Object.assign(HandlerAndEvented.prototype, Evented.prototype);
 	return HandlerAndEvented as any as new (map: Map) => Handler & Evented;
 })() {
-	options: DraggableLinesHandlerOptions & Required<Pick<DraggableLinesHandlerOptions, "enableForLayer" | "allowExtendingLine" | "removeOnClick">>;
+	options: DraggableLinesHandlerOptions & Required<Pick<DraggableLinesHandlerOptions, "enableForLayer" | "allowDraggingLine" | "allowExtendingLine" | "removeOnClick">>;
 
 	_tempMarker?: DraggableLinesTempMarker;
 
@@ -32,6 +33,7 @@ export default class DraggableLinesHandler extends (() => {
 
 		this.options = {
 			enableForLayer: (layer) => layer.options.interactive!,
+			allowDraggingLine: true,
 			allowExtendingLine: true,
 			removeOnClick: true,
 			...options
@@ -189,7 +191,7 @@ export default class DraggableLinesHandler extends (() => {
 	drawTempMarker(layer: SupportedLayer, latlng: LatLng) {
 		this.removeTempMarker();
 
-		if (layer instanceof Rectangle) {
+		if (layer instanceof Rectangle || !matchesLayerFilter(layer, this.options.allowDraggingLine)) {
 			return;
 		}
 
