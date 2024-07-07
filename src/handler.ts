@@ -46,8 +46,8 @@ export default class DraggableLinesHandler extends (() => {
 	}
 
 	removeHooks() {
-		this._map.on("layeradd", this.handleLayerAdd);
-		this._map.on("layerremove", this.handleLayerRemove);
+		this._map.off("layeradd", this.handleLayerAdd);
+		this._map.off("layerremove", this.handleLayerRemove);
 
 		this._map.eachLayer((layer) => { this.handleLayerRemove({ layer }); });
 	}
