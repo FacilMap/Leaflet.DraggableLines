@@ -80,7 +80,8 @@ export function locateOnLine(map: L.Map, trackPoints: L.LatLng[] | L.LatLng[][],
 
 	const results = data.map((d) => {
 		const closest = L.LineUtil.closestPointOnSegment(d.point, d.pointA, d.pointB);
-		const idx: [number, number] = [d.idx[0], d.idx[1] + (closest.x - d.pointA.x) / (d.pointB.x - d.pointA.x)]; // Since closest is on line between pointA and pointB, the ratio of x and y are the same
+		const segDist = d.pointB.distanceTo(d.pointA);
+		const idx: [number, number] = [d.idx[0], d.idx[1] + (segDist === 0 ? 0.5 : closest.distanceTo(d.pointA) / segDist)];
 		return {
 			idx: isFlat ? idx[1] : idx,
 			closest: map.unproject(closest, maxzoom)
