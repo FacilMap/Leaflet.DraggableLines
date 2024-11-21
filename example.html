@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>L.HighlightableLayers Example</title>
+		<title>L.DraggableLines Example</title>
 		<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 		<link rel="stylesheet" href="https://esm.sh/leaflet/dist/leaflet.css" />
 		<style type="text/css">
@@ -27,7 +27,7 @@
 		<script type="module">
 			import * as L from 'leaflet';
 			import { HighlightableCircle, HighlightableCircleMarker, HighlightablePolygon, HighlightablePolyline, HighlightableRectangle } from 'leaflet-highlightable-layers';
-			import DraggableLines from 'leaflet-draggable-lines';
+			import DraggableLines, { startIcon, endIcon, defaultIcon, createDefaultMarkerIcon } from 'leaflet-draggable-lines';
 
 			var map = L.map('map',{
 				center: [52.4830, 13.3414],
@@ -45,9 +45,23 @@
 
 			new HighlightableCircle([52.34463, 11.68121], { radius: 20000, color: "#ffff00" }).addTo(map);
 			new HighlightableCircleMarker([53, 13], { radius: 20, color: "#ffff00" }).addTo(map);
-			new HighlightableRectangle([[52.91056, 14.40308], [52.63806, 15.0705]], { color: "#ffaaaa" }).addTo(map);
+			const rectangle = new HighlightableRectangle([[52.91056, 14.40308], [52.63806, 15.0705]], { color: "#ffaaaa" }).addTo(map);
 
-			const draggable = new DraggableLines(map);
+			const yellowIcon = createDefaultMarkerIcon({ color1: "#979749", color2: "#EAEA3F", color3: "#D3D337", color4: "#DDDD68" });
+			const draggable = new DraggableLines(map, {
+				dragMarkerOptions: (layer, i) => {
+					if (layer === rectangle) {
+						return {
+							icon: (
+								i === 0 ? startIcon :
+								i === 1 ? defaultIcon :
+								i === 2 ? yellowIcon :
+								endIcon
+							)
+						};
+					}
+				}
+			});
 			draggable.enable();
 
 			setTimeout(() => {

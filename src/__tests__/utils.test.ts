@@ -1,4 +1,4 @@
-import { getFromPosition, insertAtPosition, removeFromPosition, updateAtPosition } from "../utils";
+import { approximate, getFromPosition, insertAtPosition, removeFromPosition, updateAtPosition } from "../utils";
 import { expect, test } from "vitest";
 
 test('getFromPosition', () => {
@@ -42,4 +42,13 @@ test('removeFromPosition', () => {
 	expect(removeFromPosition([['a', 'b'], ['c', 'd']], [0, 1])).toEqual([['a'], ['c', 'd']]);
 	expect(removeFromPosition([['a', 'b'], ['c', 'd']], [1, 0])).toEqual([['a', 'b'], ['d']]);
 	expect(removeFromPosition([['a', 'b'], ['c', 'd']], [1, 1])).toEqual([['a', 'b'], ['c']]);
+});
+
+test("approximate", async () => {
+	expect(approximate(10, (input) => input*2)).toBe(5);
+	expect(approximate(-10, (input) => input*2)).toBe(-5);
+	expect(approximate(1, (input) => input*2)).toBe(0.5);
+	expect(approximate(0, (input) => input*2)).toBe(0);
+
+	expect(approximate(2, (input) => Math.sin(input))).toBe(0);
 });

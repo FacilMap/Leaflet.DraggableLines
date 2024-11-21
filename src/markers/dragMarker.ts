@@ -1,9 +1,9 @@
-import { Draggable, LatLng, LatLngExpression, Map, MarkerOptions, Polygon, Polyline, Rectangle } from "leaflet";
+import { Draggable, LatLng, LatLngExpression, Map, MarkerOptions, Polygon } from "leaflet";
 import DraggableLinesHandler from "../handler";
-import { removePoint, SupportedLayer } from "../utils";
 import DraggableLinesMarker from "./marker";
+import { SupportedLayer } from "../injections-types.mjs";
 
-export default class DraggableLinesDragMarker extends DraggableLinesMarker {
+export default class DraggableLinesDragMarker extends DraggableLinesMarker<false> {
 
 	_idx: number | [number, number];
 	_removeOnClick: boolean;
@@ -22,11 +22,12 @@ export default class DraggableLinesDragMarker extends DraggableLinesMarker {
 	onAdd(map: Map) {
 		super.onAdd(map);
 
-		const latlngs = this._layer.getDraggableLinesRoutePoints() || (this._layer.getLatLngs() as LatLng[] | LatLng[][]);
-		const points = Array.isArray(this._idx) ? (latlngs as LatLng[][])[this._idx[0]] : (latlngs as LatLng[]);
-
-		if (this._removeOnClick && !(this._layer instanceof Rectangle) && points.length > (this._layer instanceof Polygon ? 3 : 2)) {
-			this.on('click', this.handleClick);
+		if (this._removeOnClick && this._layer.removeDraggableLinesRoutePoint) {
+			const latlngs = this._layer.getDraggableLinesRoutePoints();
+			const points = Array.isArray(this._idx) ? (latlngs as LatLng[][])[this._idx[0]] : (latlngs as LatLng[]);
+			if (points.length > (this._layer instanceof Polygon ? 3 : 2)) {
+				this.on('click', this.handleClick);
+			}
 		}
 
 		this.on("mouseover", () => {
@@ -63,10 +64,15 @@ export default class DraggableLinesDragMarker extends DraggableLinesMarker {
 	handleClick() {
 		const idx = this.getIdx();
 
-		removePoint(this._layer, idx);
+		this._layer.removeDraggableLinesRoutePoint!(idx);
 		// Markers are redrawn automatically because we update the line points
 
 		this._draggable.fire('remove', { layer: this._layer, idx });
 	}
 
+}
+
+declare global {
+	// For usage in injection-types.mts
+	type LeafletDraggableLinesDragMarker = DraggableLinesDragMarker;
 }

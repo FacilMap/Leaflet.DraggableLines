@@ -1,7 +1,7 @@
-import { DivIcon, DomEvent, Draggable, Icon, LatLng, LatLngExpression, LeafletMouseEvent, Map, MarkerOptions, Polygon, Polyline, Util } from "leaflet";
+import { DivIcon, DomEvent, Draggable, Icon, LatLng, LatLngExpression, LeafletMouseEvent, Map, MarkerOptions, Util } from "leaflet";
 import DraggableLinesHandler from "../handler";
-import { locateOnLine, getRouteInsertPosition, setPoint, PolylineIndex, SupportedLayer } from "../utils";
 import DraggableLinesMarker from "./marker";
+import { TempMarkerPoint, RequiredKeys, SupportedLayer } from "../injections-types.mjs";
 
 function createIcon(layer: SupportedLayer, baseIcon: Icon | DivIcon) {
 	const icon = Util.create(baseIcon);
@@ -23,13 +23,11 @@ function createIcon(layer: SupportedLayer, baseIcon: Icon | DivIcon) {
 	return icon;
 }
 
-type RenderPoint = { idx: PolylineIndex; closest: LatLng };
+export default class DraggableLinesTempMarker extends DraggableLinesMarker<true, RequiredKeys<SupportedLayer, "insertDraggableLinesRoutePoint">> {
 
-export default class DraggableLinesTempMarker extends DraggableLinesMarker {
+	renderPoint?: TempMarkerPoint;
 
-	renderPoint?: RenderPoint;
-
-	constructor(draggable: DraggableLinesHandler, layer: SupportedLayer, latlng: LatLngExpression, options: MarkerOptions) {
+	constructor(draggable: DraggableLinesHandler, layer: RequiredKeys<SupportedLayer, "insertDraggableLinesRoutePoint">, latlng: LatLngExpression, options: MarkerOptions) {
 		super(draggable, layer, latlng, true, {
 			draggable: true,
 			zIndexOffset: -100000,
@@ -99,7 +97,7 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
 		const latlng = this.renderPoint.closest;
 		const idx = this.renderPoint.idx;
 
-		setPoint(this._layer, latlng, idx, true);
+		this._layer.insertDraggableLinesRoutePoint(idx, latlng);
 
 		this._draggable.fire('insert', { layer: this._layer, latlng, idx });
 	}
@@ -111,23 +109,8 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
 
 
 	// Overridden by DraggableLinesPlusTempMarker
-	getRenderPoint(mouseLatLng: LatLng): RenderPoint | undefined {
-		const loc = locateOnLine(this._map, this._layer.getLatLngs() as LatLng[] | LatLng[][], mouseLatLng, this._layer instanceof Polygon);
-
-		// In case of a polygon, we want to hide the marker while we are hovering the fill, we only want to show
-		// it while we are hovering the outline.
-		const distancePx = this._map.project(mouseLatLng).distanceTo(this._map.project(loc.closest));
-		if (distancePx > this._layer.options.weight! / 2 + 1)
-			return undefined;
-
-		let idx: PolylineIndex = this._layer.hasDraggableLinesRoutePoints()
-			? getRouteInsertPosition(this._map, this._draggable._getRoutePointIndexes(this._layer)!, this._layer.getLatLngs() as LatLng[], loc.idx as number)
-			: Array.isArray(loc.idx) ? [loc.idx[0], Math.ceil(loc.idx[1])] : Math.ceil(loc.idx);
-
-		return {
-			closest: loc.closest,
-			idx
-		};
+	getRenderPoint(mouseLatLng: LatLng): TempMarkerPoint | undefined {
+		return this._layer.getDraggableLinesTempMarkerPoint?.(mouseLatLng);
 	}
 
 

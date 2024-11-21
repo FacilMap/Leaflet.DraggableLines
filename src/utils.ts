@@ -1,11 +1,8 @@
 import * as L from "leaflet";
+import { CornerPosition, PolylineIndex, SupportedLayer } from "./injections-types.mjs";
 
-export type PolylineIndex = number | [number, number];
-
-export type SupportedLayer = L.Polyline | L.Polygon;
-
-export type LayerFilter<Args extends any[] = []> = boolean | SupportedLayer | SupportedLayer[] | ((layer: SupportedLayer, ...args: Args) => boolean);
-export function matchesLayerFilter<Args extends any[]>(layer: SupportedLayer, filter: LayerFilter<Args>, ...args: NoInfer<Args>): boolean {
+export type LayerFilter<L extends SupportedLayer = SupportedLayer, Args extends any[] = []> = boolean | L | L[] | ((layer: L, ...args: Args) => boolean);
+export function matchesLayerFilter<L extends SupportedLayer, Args extends any[]>(layer: L, filter: LayerFilter<L, Args>, ...args: NoInfer<Args>): boolean {
 	if (typeof filter === "function")
 		return filter(layer, ...args);
 	else if (typeof filter === "boolean")
@@ -184,57 +181,11 @@ export function removeFromPosition<A extends any[] | any[][]>(arr: A, idx: numbe
 	}
 }
 
-export function setPoint(layer: L.Polyline | L.Polygon, point: L.LatLng, idx: number | [number, number], insert: boolean) {
-	if (layer instanceof L.Rectangle) {
-		// L.Rectangle extends L.Polygon. By default, it contains 4 points, [0, 0] (SW), [0, 1] (NW), [0, 2] (NE), [0, 3] (SE).
-		// However, we manually create drag markers with indexes 0 (SW), 1 (NW), 2 (NE), 3 (SE) in DraggableLinesHandler.drawDragMarkers()
-		// instead of relying on layer.getLatLngs().
-		const i = Array.isArray(idx) ? idx[1] : idx;
-		const bounds = layer.getBounds();
-		if (i === 0) { // south-west
-			layer.setBounds(L.latLngBounds([Math.min(point.lat, bounds.getNorth()), Math.min(point.lng, bounds.getEast())], bounds.getNorthEast()));
-		} else if (i === 1) { // north-west
-			layer.setBounds(L.latLngBounds([Math.max(point.lat, bounds.getSouth()), Math.min(point.lng, bounds.getEast())], bounds.getSouthEast()));
-		} else if (i === 2) { // north-east
-			layer.setBounds(L.latLngBounds([Math.max(point.lat, bounds.getSouth()), Math.max(point.lng, bounds.getWest())], bounds.getSouthWest()));
-		} else if (i === 3) { // south-east
-			layer.setBounds(L.latLngBounds([Math.min(point.lat, bounds.getNorth()), Math.max(point.lng, bounds.getWest())], bounds.getNorthWest()));
-		}
-		return;
+export function getPlusIconPoint(map: L.Map, trackPoints: L.LatLng[], distance: number, atStart: boolean): L.LatLng | undefined {
+	if (trackPoints.length < 2) {
+		return undefined;
 	}
 
-	const hasRoutePoints = layer.hasDraggableLinesRoutePoints();
-
-	let points = hasRoutePoints ? layer.getDraggableLinesRoutePoints()! : layer.getLatLngs() as L.LatLng[] | L.LatLng[][];
-
-	if (insert)
-		points = insertAtPosition(points, point, idx);
-	else
-		points = updateAtPosition(points, point, idx);
-
-	if (hasRoutePoints)
-		layer.setDraggableLinesRoutePoints(points as any);
-	else
-		layer.setLatLngs(points);
-}
-
-export function removePoint(layer: L.Polyline | L.Polygon, idx: number | [number, number]) {
-	if (layer instanceof L.Rectangle) {
-		return;
-	}
-
-	const hasRoutePoints = layer.hasDraggableLinesRoutePoints();
-
-	let points = hasRoutePoints ? layer.getDraggableLinesRoutePoints()! : layer.getLatLngs() as L.LatLng[] | L.LatLng[][];
-	points = removeFromPosition(points, idx);
-
-	if (hasRoutePoints)
-		layer.setDraggableLinesRoutePoints(points as any);
-	else
-		layer.setLatLngs(points);
-}
-
-export function getPlusIconPoint(map: L.Map, trackPoints: L.LatLng[], distance: number, atStart: boolean) {
 	const tr = atStart ? trackPoints : [...trackPoints].reverse();
 
 	const point0 = map.latLngToContainerPoint(tr[0]);
@@ -252,4 +203,115 @@ export function getPlusIconPoint(map: L.Map, trackPoints: L.LatLng[], distance: 
 	}
 
 	return map.containerPointToLatLng(result);
+}
+
+/**
+ * Reverses a formula through trial and error: Tries passing different input values to the given callback until its result
+ * matches the desired output; then returns the input.
+ * There **must** be a correlation between the input and output, meaning a larger input must always result in a larger output
+ * and a smaller input must always result in a smaller output (or the opposite).
+ * @param desiredOutput The desired result of getOutput(input)
+ * @param getOutput The callback that calculates the result
+ * @param precision The output will be considered equal to the desired output if their difference is less than this value
+ * @returns The input that produces the desired output (within the given precision). If no input could be found, NaN is returned.
+ */
+export function approximate(desiredOutput: number, getOutput: (input: number) => number, precision = 1): number {
+	let input1 = 1;
+	let input2 = 2;
+	let output1 = getOutput(input1);
+	let output2 = getOutput(input2);
+	while (true) {
+		if (Math.abs(output2 - desiredOutput) < precision) {
+			return input2;
+		} else if (output1 === output2 || !isFinite(input2)) {
+			return NaN;
+		}
+		[input1, input2] = [input2, input1 + (input2 - input1) * (desiredOutput - output1) / (output2 - output1)];
+		[output1, output2] = [output2, getOutput(input2)];
+	};
+}
+
+/**
+ * Returns the centre point and vertical/horizontal radius of the ellipsis created by an L.Circle. Notably, the centre
+ * point will usually not be exactly at the specified latlng.
+ */
+export function getCircleParams(map: L.Map, latlng: L.LatLng, radius: number): { center: L.Point; radius: L.Point } {
+	const obj: any = {
+		_latlng: latlng,
+		_map: map,
+		_mRadius: radius,
+		_updateBounds: () => undefined
+	};
+	(L.Circle.prototype as any)._project.call(obj);
+	return {
+		center: obj._point,
+		radius: L.point(obj._radius, obj._radiusY)
+	};
+}
+
+/**
+ * Returns the distance in pixels from the given point to the given L.Circle ellipsis. If the point is inside the circle,
+ * a negative distance is returned.
+ */
+export function getDistanceToCircle(map: L.Map, latlng: L.LatLng, radius: number, point: L.LatLngExpression): number {
+	const { center: { x: cx, y: cy }, radius: { x: rx, y: ry } } = getCircleParams(map, latlng, radius);
+	const { x: px, y: py } = map.latLngToLayerPoint(point);
+	// https://math.stackexchange.com/a/4636320
+	return (
+		Math.sqrt((px - cx)**2 + (py - cy)**2)
+		- Math.sqrt(
+			(rx**2 * ry**2 * ((px - cx)**2 + (py - cy)**2))
+			/ ((px - cx)**2 * ry**2 + (py - cy)**2 * rx**2)
+		)
+	);
+}
+
+export function getCircleCorners(map: L.Map, latlng: L.LatLng, radius: number): Record<"top" | "right" | "bottom" | "left", L.LatLng> {
+	const { x: px, y: py } = map.latLngToLayerPoint(latlng);
+	const { center: { x: cx, y: cy }, radius: { x: rx, y: ry } } = getCircleParams(map, latlng, radius);
+	const dx = Math.sqrt(1 - ((py - cy) / ry) ** 2) * rx;
+	return {
+		top: map.layerPointToLatLng([px, cy - ry]),
+		right: map.layerPointToLatLng([cx + dx, py]),
+		bottom: map.layerPointToLatLng([px, cy + ry]),
+		left: map.layerPointToLatLng([cx - dx, py])
+	};
+}
+
+// export function isClockwiseRectangle(corners: [L.LatLng, L.LatLng, L.LatLng, L.LatLng]): boolean {
+// 	return (
+// 		corners[1].lat > corners[0].lat && corners[2].lng > corners[1].lng // 0 is sw
+// 		|| corners[1].lng > corners[0].lng && corners[2].lat < corners[1].lat // 0 is nw
+// 		|| corners[1].lat < corners[0].lat && corners[2].lng < corners[1].lng // 0 is ne
+// 		|| corners[1].lng < corners[0].lng && corners[2].lat > corners[1].lat // 0 is se
+// 	);
+// }
+
+export function moveRectangleCorner(corners: [L.LatLng, L.LatLng, L.LatLng, L.LatLng], idx: 0 | 1 | 2 | 3, newPosition: L.LatLng): [L.LatLng, L.LatLng, L.LatLng, L.LatLng] {
+	const newCorners = [...corners] as [L.LatLng, L.LatLng, L.LatLng, L.LatLng];
+
+	newCorners[idx] = newPosition;
+
+	let idxSameLat = (idx + 3) % 4;
+	let idxSameLng = (idx + 1) % 4;
+	if (corners[idx].lng === corners[idxSameLat].lng) {
+		[idxSameLat, idxSameLng] = [idxSameLng, idxSameLat];
+	}
+
+	newCorners[idxSameLat] = L.latLng(newPosition.lat, newCorners[idxSameLat].lng);
+	newCorners[idxSameLng] = L.latLng(newCorners[idxSameLng].lat, newPosition.lng);
+
+	return newCorners;
+}
+
+export function getRectangleCornerPositions(corners: [L.LatLng, L.LatLng, L.LatLng, L.LatLng]): [CornerPosition, CornerPosition, CornerPosition, CornerPosition] {
+	if (corners[0].lat < corners[1].lat) {
+		return corners[1].lng < corners[2].lng ? ["sw", "nw", "ne", "se"] : ["se", "ne", "nw", "sw"];
+	} else if (corners[0].lat > corners[1].lat) {
+		return corners[1].lng < corners[2].lng ? ["nw", "sw", "se", "ne"] : ["ne", "se", "sw", "nw"];
+	} else if (corners[0].lng < corners[1].lng) {
+		return corners[2].lat < corners[1].lat ? ["nw", "ne", "se", "sw"] : ["sw", "se", "ne", "nw"];
+	} else {
+		return corners[2].lat < corners[1].lat ? ["ne", "nw", "sw", "se"] : ["se", "sw", "nw", "ne"];
+	}
 }
