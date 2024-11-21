@@ -2,15 +2,15 @@ import { DomUtil, LatLng, LatLngExpression, LeafletMouseEvent, Map, MarkerOption
 import DraggableLinesHandler from "../handler";
 import DraggableLinesMarker from "./marker";
 import DraggableLinesTempMarker from "./tempMarker";
-import { SupportedLayer } from "../utils";
+import { RequiredKeys, SupportedLayer } from "../injections-types.mjs";
 
-export default class DraggableLinesPlusMarker extends DraggableLinesMarker {
+export default class DraggableLinesPlusMarker extends DraggableLinesMarker<true> {
 
 	_idx: number | [number, number];
 	_tempMarker?: DraggableLinesPlusTempMarker;
 	_tempMarkerOptions: MarkerOptions;
 
-	constructor(draggable: DraggableLinesHandler, layer: SupportedLayer, latlng: LatLngExpression, idx: number | [number, number], options: MarkerOptions, tempMarkerOptions: MarkerOptions) {
+	constructor(draggable: DraggableLinesHandler, layer: RequiredKeys<SupportedLayer, "insertDraggableLinesRoutePoint">, latlng: LatLngExpression, idx: number | [number, number], options: MarkerOptions, tempMarkerOptions: MarkerOptions) {
 		super(draggable, layer, latlng, true, {
 			pane: "overlayPane",
 			zIndexOffset: -200000,
@@ -58,7 +58,7 @@ export class DraggableLinesPlusTempMarker extends DraggableLinesTempMarker {
 	_plusMarker: DraggableLinesPlusMarker;
 	_idx: number | [number, number];
 
-	constructor(draggable: DraggableLinesHandler, layer: SupportedLayer, plusMarker: DraggableLinesPlusMarker, latlng: LatLngExpression, idx: number | [number, number], options: MarkerOptions) {
+	constructor(draggable: DraggableLinesHandler, layer: RequiredKeys<SupportedLayer, "insertDraggableLinesRoutePoint">, plusMarker: DraggableLinesPlusMarker, latlng: LatLngExpression, idx: number | [number, number], options: MarkerOptions) {
 		super(draggable, layer, latlng, options);
 
 		this._plusMarker = plusMarker;
@@ -88,4 +88,9 @@ export class DraggableLinesPlusTempMarker extends DraggableLinesTempMarker {
 		this._draggable.fire("plusmouseout", { layer: this._layer, idx: this.getIdx(), marker: this, plusMarker: this._plusMarker });
 	}
 
+}
+
+declare global {
+	// For usage in injection-types.mts
+	type LeafletDraggableLinesPlusMarker = DraggableLinesPlusMarker;
 }

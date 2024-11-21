@@ -318,7 +318,7 @@ Polyline and its subclasses.
 ## Usage with rectangles
 
 `L.Rectangle` is a sub-class of `L.Polygon`, so it is made draggable by default. Since rectangles are a special type of polygon, their behaviour differs in the following ways:
-* Rectangles always have 4 drag markers corresponding to their corners. Their indexes are `0` (south-west), `1` (north-west), `2` (north-east) and `3` (south-east).
+* Rectangles always have 4 drag markers corresponding to their corners. Their indexes are `[0, 0]` (south-west), `[0, 1]` (north-west), `[0, 2]` (north-east) and `[0, 3]` (south-east).
 * Dragging any of the drag markers will keep the shape rectangular, so it will affect the positions of one or two other drag markers.
 * It is not possible to insert additional waypoints by clicking the border of the rectangle. No temporary drag marker is shown on hover, even when `allowDraggingLine` is set to true.
 * It is not possible to remove waypoints from rectangles. Nothing will happen when clicking the drag markers, even when `removeOnClick` is set to true.
