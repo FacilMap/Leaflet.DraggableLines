@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 import dtsPlugin from 'unplugin-dts/vite';
 import { appendFile, readFile } from "fs/promises";
+import { isAbsolute } from "node:path";
 
 export default defineConfig({
 	plugins: [
@@ -27,7 +28,7 @@ export default defineConfig({
 			formats: ["es"]
 		},
 		rollupOptions: {
-			external: (id) => !id.startsWith("./") && !id.startsWith("../") && /* resolved internal modules */ !id.startsWith("/")
+			external: (id) => !id.startsWith("./") && !id.startsWith("../") && /* resolved internal modules */ !isAbsolute(id)
 		}
 	},
 	resolve: {
