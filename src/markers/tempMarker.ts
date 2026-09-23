@@ -106,7 +106,18 @@ export default class DraggableLinesTempMarker extends DraggableLinesMarker {
 
 
 	shouldRemove(mouseLatlng: LatLng) {
-		return !this._layer._containsPoint(this._map.latLngToLayerPoint(mouseLatlng));
+		// Introduce a little bit of tolerance. Sometimes it happens that a mouseover event is fired for the line but
+		// _containsPoint() still returns false. This would cause us to remove the temp marker immediately again.
+		// The cause is probably sub-pixel rounding errors. Introducing a pixel of tolerance hopefully solves this
+		// problem.
+		const renderer = (this._layer as any)["_renderer"];
+		const toleranceBkp = renderer.options.tolerance;
+		try {
+			renderer.options.tolerance = 1;
+			return !this._layer._containsPoint(this._map.latLngToLayerPoint(mouseLatlng));
+		} finally {
+			renderer.options.tolerance = toleranceBkp;
+		}
 	}
 
 
