@@ -1,5 +1,8 @@
-import { approximate, getFromPosition, insertAtPosition, removeFromPosition, updateAtPosition } from "../utils";
+import { approximate, getFromPosition, insertAtPosition, locateOnLine, removeFromPosition, updateAtPosition } from "../utils";
 import { expect, test } from "vitest";
+import * as L from "leaflet";
+import handles from "./handles.json" with { type: "json" };
+import track from "./track.json" with { type: "json" };
 
 test('getFromPosition', () => {
 	expect(getFromPosition(['a', 'b'], 0)).toEqual('a');
@@ -44,11 +47,19 @@ test('removeFromPosition', () => {
 	expect(removeFromPosition([['a', 'b'], ['c', 'd']], [1, 1])).toEqual([['a', 'b'], ['c']]);
 });
 
-test("approximate", async () => {
+test("approximate", () => {
 	expect(approximate(10, (input) => input*2)).toBe(5);
 	expect(approximate(-10, (input) => input*2)).toBe(-5);
 	expect(approximate(1, (input) => input*2)).toBe(0.5);
 	expect(approximate(0, (input) => input*2)).toBe(0);
 
 	expect(approximate(2, (input) => Math.sin(input))).toBe(0);
+});
+
+test("locateOnLine", async () => {
+	const div = document.createElement("div");
+	const map = L.map(div);
+
+	const result = locateOnLine(map, track, handles);
+	(await import("fs/promises")).writeFile("./result.json", JSON.stringify(result));
 });
