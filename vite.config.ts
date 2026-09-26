@@ -1,7 +1,6 @@
-/// <reference types="vitest" />
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
-import dtsPlugin from 'vite-plugin-dts';
+import dtsPlugin from 'unplugin-dts/vite';
 import { appendFile, readFile } from "fs/promises";
 
 export default defineConfig({
@@ -9,7 +8,7 @@ export default defineConfig({
 		cssInjectedByJsPlugin(),
 		dtsPlugin({
 			clearPureImport: false,
-			rollupTypes: true,
+			bundleTypes: true,
 			async afterBuild() {
 				// Due to https://github.com/microsoft/rushstack/issues/1709, our module augmentations are lost during
 				// the type rollup. As an ugly workaround, we simply append them here.

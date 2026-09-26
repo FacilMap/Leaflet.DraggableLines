@@ -125,7 +125,7 @@ export function getRouteInsertPosition(map: L.Map, routePoints: L.LatLng[] | num
 }
 
 export function getFromPosition<T, A extends T[] | T[][]>(arr: A, idx: PolylineIndex): T {
-	return Array.isArray(idx) ? (arr as any)[idx[0]][idx[1]] : arr[idx];
+	return Array.isArray(idx) ? (arr as any)[idx[0]][idx[1]] : arr[idx] as any;
 }
 
 /**
