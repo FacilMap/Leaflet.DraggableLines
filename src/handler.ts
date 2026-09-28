@@ -4,6 +4,7 @@ import DraggableLinesDragMarker from './markers/dragMarker';
 import DraggableLinesPlusMarker from './markers/plusMarker';
 import DraggableLinesTempMarker from './markers/tempMarker';
 import { getPlusIconPoint, LayerFilter, locateOnLine, matchesLayerFilter, PolylineIndex, SupportedLayer } from './utils';
+import { DraggableLinesEvented } from "./events";
 
 export interface DraggableLinesHandlerOptions {
 	enableForLayer?: LayerFilter;
@@ -17,12 +18,12 @@ export interface DraggableLinesHandlerOptions {
 }
 
 export default class DraggableLinesHandler extends (() => {
-	function HandlerAndEvented(this: Handler & Evented, map: Map) {
+	function HandlerAndEvented(this: Handler & DraggableLinesEvented, map: Map) {
 		Handler.call(this, map);
 	}
 	Object.setPrototypeOf(HandlerAndEvented.prototype, Handler.prototype);
 	Object.assign(HandlerAndEvented.prototype, Evented.prototype);
-	return HandlerAndEvented as any as new (map: Map) => Handler & Evented;
+	return HandlerAndEvented as any as new (map: Map) => Handler & DraggableLinesEvented;
 })() {
 	options: DraggableLinesHandlerOptions & Required<Pick<DraggableLinesHandlerOptions, "enableForLayer" | "allowDraggingLine" | "allowExtendingLine" | "removeOnClick">>;
 

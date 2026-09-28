@@ -5,6 +5,7 @@ import DraggableLinesDragMarker from './markers/dragMarker';
 import DraggableLinesTempMarker from './markers/tempMarker';
 import DraggableLinesPlusMarker, { DraggableLinesPlusTempMarker } from './markers/plusMarker';
 
+export * from './events';
 export * from './utils';
 export * from './markers/icons';
 export * from './markers/plusMarker';
